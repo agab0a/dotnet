@@ -1,32 +1,37 @@
-Ok!
-Bạn muốn tách thành 3 file, mình sẽ chia như sau cho gọn và đúng chuẩn:
+Tôi sẽ giúp bạn giải bài tập lập trình trên bằng ngôn ngữ C# trong Visual Studio 2022. Đây là một bài tập OOP, yêu cầu xây dựng hai lớp `Pilot` và `CommercialPilot`, cùng với các chức năng quản lý danh sách phi công. Tôi sẽ cung cấp mã nguồn hoàn chỉnh cho một ứng dụng Console đơn giản.
 
-Pilot.cs → chứa lớp Pilot
+### Giải pháp
+- Tạo một dự án Console App trong Visual Studio 2022.
+- Triển khai lớp `Pilot` và lớp `CommercialPilot` (kế thừa từ `Pilot`).
+- Xây dựng chương trình chính với menu để thực hiện các chức năng: Thêm, Hiển thị, Sắp xếp, Thoát.
 
-CommercialPilot.cs → chứa lớp CommercialPilot (kế thừa Pilot)
+Dưới đây là mã nguồn hoàn chỉnh:
 
-Program.cs → chứa hàm Main() và menu
-
-
-
----
-
-Dưới đây là nội dung từng file:
-
-
----
-
-1. Pilot.cs
-
+<xaiArtifact artifact_id="09231f5b-25f8-464e-ba59-1efe5f4aebcd" artifact_version_id="df6f8468-4c3f-47f2-9595-bdf0799352c6" title="Program.cs" contentType="text/csharp">
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
-public class Pilot
+class Pilot
 {
     public string FullName { get; set; }
     public int BirthYear { get; set; }
     public int Experience { get; set; }
     public string LicenseNumber { get; set; }
     public string ContactInfo { get; set; }
+
+    public Pilot()
+    {
+    }
+
+    public Pilot(string fullName, int birthYear, int experience, string licenseNumber, string contactInfo)
+    {
+        FullName = fullName;
+        BirthYear = birthYear;
+        Experience = experience;
+        LicenseNumber = licenseNumber;
+        ContactInfo = contactInfo;
+    }
 
     public virtual void Input()
     {
@@ -44,21 +49,25 @@ public class Pilot
 
     public virtual void Output()
     {
-        Console.Write($"{FullName}\t{BirthYear}\t{Experience}\t{LicenseNumber}\t{ContactInfo}");
+        Console.WriteLine($"Họ tên: {FullName}, Năm sinh: {BirthYear}, Kinh nghiệm: {Experience} năm, Số giấy phép: {LicenseNumber}, Liên lạc: {ContactInfo}");
     }
 }
 
-
----
-
-2. CommercialPilot.cs
-
-using System;
-
-public class CommercialPilot : Pilot
+class CommercialPilot : Pilot
 {
     public string Airline { get; set; }
     public string AircraftType { get; set; }
+
+    public CommercialPilot()
+    {
+    }
+
+    public CommercialPilot(string fullName, int birthYear, int experience, string licenseNumber, string contactInfo, string airline, string aircraftType)
+        : base(fullName, birthYear, experience, licenseNumber, contactInfo)
+    {
+        Airline = airline;
+        AircraftType = aircraftType;
+    }
 
     public override void Input()
     {
@@ -72,87 +81,125 @@ public class CommercialPilot : Pilot
     public override void Output()
     {
         base.Output();
-        Console.WriteLine($"\t{Airline}\t{AircraftType}");
+        Console.WriteLine($"Hãng hàng không: {Airline}, Loại máy bay: {AircraftType}");
     }
 }
-
-
----
-
-3. Program.cs
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 class Program
 {
+    static List<CommercialPilot> pilots = new List<CommercialPilot>();
+
     static void Main(string[] args)
     {
-        List<CommercialPilot> pilots = new List<CommercialPilot>();
-        int choice;
+        Console.OutputEncoding = System.Text.Encoding.UTF8; // Hỗ trợ tiếng Việt
 
-        do
+        while (true)
         {
-            Console.WriteLine("\n========== MENU ==========");
-            Console.WriteLine("1. Thêm phi công thương mại");
-            Console.WriteLine("2. Hiển thị danh sách phi công thương mại");
-            Console.WriteLine("3. Sắp xếp danh sách theo số năm kinh nghiệm giảm dần");
+            Console.WriteLine("\n=== Menu Quản Lý Phi Công ===");
+            Console.WriteLine("1. Thêm phi công");
+            Console.WriteLine("2. Hiển thị danh sách phi công");
+            Console.WriteLine("3. Sắp xếp theo kinh nghiệm giảm dần");
             Console.WriteLine("4. Thoát");
-            Console.Write("Nhập lựa chọn của bạn: ");
-            choice = int.Parse(Console.ReadLine());
+            Console.Write("Chọn chức năng (1-4): ");
+
+            string choice = Console.ReadLine();
 
             switch (choice)
             {
-                case 1:
-                    CommercialPilot cp = new CommercialPilot();
-                    Console.WriteLine("Nhập thông tin phi công thương mại:");
-                    cp.Input();
-                    pilots.Add(cp);
+                case "1":
+                    AddPilot();
                     break;
-                case 2:
-                    Console.WriteLine("\nDanh sách phi công thương mại:");
-                    foreach (var pilot in pilots)
-                    {
-                        pilot.Output();
-                    }
+                case "2":
+                    DisplayPilots();
                     break;
-                case 3:
-                    pilots = pilots.OrderByDescending(p => p.Experience).ToList();
-                    Console.WriteLine("\nDanh sách phi công sau khi sắp xếp:");
-                    foreach (var pilot in pilots)
-                    {
-                        pilot.Output();
-                    }
+                case "3":
+                    SortPilotsByExperience();
                     break;
-                case 4:
+                case "4":
                     Console.WriteLine("Thoát chương trình.");
-                    break;
+                    return;
                 default:
-                    Console.WriteLine("Lựa chọn không hợp lệ. Vui lòng chọn lại.");
+                    Console.WriteLine("Lựa chọn không hợp lệ. Vui lòng thử lại!");
                     break;
             }
-        } while (choice != 4);
+        }
+    }
+
+    static void AddPilot()
+    {
+        CommercialPilot pilot = new CommercialPilot();
+        pilot.Input();
+
+        // Kiểm tra trùng số giấy phép
+        if (pilots.Any(p => p.LicenseNumber == pilot.LicenseNumber))
+        {
+            Console.WriteLine("Số giấy phép đã tồn tại! Không thể thêm phi công này.");
+            return;
+        }
+
+        pilots.Add(pilot);
+        Console.WriteLine("Thêm phi công thành công!");
+    }
+
+    static void DisplayPilots()
+    {
+        if (pilots.Count == 0)
+        {
+            Console.WriteLine("Danh sách phi công trống!");
+            return;
+        }
+
+        Console.WriteLine("\n=== Danh Sách Phi Công ===");
+        foreach (var pilot in pilots)
+        {
+            pilot.Output();
+            Console.WriteLine("-------------------------");
+        }
+    }
+
+    static void SortPilotsByExperience()
+    {
+        if (pilots.Count == 0)
+        {
+            Console.WriteLine("Danh sách phi công trống!");
+            return;
+        }
+
+        pilots = pilots.OrderByDescending(p => p.Experience).ToList();
+        Console.WriteLine("Đã sắp xếp danh sách theo kinh nghiệm giảm dần!");
+        DisplayPilots();
     }
 }
+</xaiArtifact>
 
+### Hướng dẫn sử dụng trong Visual Studio 2022
+1. **Tạo dự án mới**:
+   - Mở Visual Studio 2022.
+   - Chọn "Create a new project".
+   - Tìm và chọn **Console App** (C#), sau đó nhấn "Next".
+   - Đặt tên dự án (ví dụ: `PilotManagement`), chọn vị trí lưu, rồi nhấn "Create".
 
----
+2. **Thay thế mã nguồn**:
+   - Mở file `Program.cs` trong Solution Explorer.
+   - Xóa nội dung mặc định và dán toàn bộ mã nguồn từ trên vào.
 
-Lưu ý khi bạn chạy:
+3. **Chạy chương trình**:
+   - Nhấn **F5** hoặc nút "Start" để chạy chương trình.
+   - Chương trình sẽ hiển thị menu với các chức năng: Thêm phi công, Hiển thị danh sách, Sắp xếp theo kinh nghiệm, Thoát.
 
-3 file này phải nằm cùng một thư mục.
+4. **Kiểm tra tính năng**:
+   - Chọn "1" để thêm phi công (nhập thông tin như họ tên, năm sinh, kinh nghiệm, số giấy phép, thông tin liên lạc, hãng hàng không, loại máy bay). Chương trình sẽ kiểm tra trùng số giấy phép.
+   - Chọn "2" để hiển thị danh sách phi công.
+   - Chọn "3" để sắp xếp danh sách theo kinh nghiệm giảm dần.
+   - Chọn "4" để thoát.
 
-Project cần để modifier là public cho class Pilot, CommercialPilot để các file nhìn thấy nhau.
+### Giải thích mã
+- **Lớp `Pilot`**: Lớp cơ sở với các thuộc tính `FullName`, `BirthYear`, `Experience`, `LicenseNumber`, `ContactInfo`. Có phương thức `Input` để nhập và `Output` để hiển thị thông tin.
+- **Lớp `CommercialPilot`**: Kế thừa từ `Pilot`, bổ sung thuộc tính `Airline` và `AircraftType`. Ghi đè phương thức `Input` và `Output` để xử lý thêm các thuộc tính mới.
+- **Chương trình chính**:
+  - Sử dụng `List<CommercialPilot>` để lưu danh sách phi công.
+  - Menu được xây dựng với vòng lặp `while` và `switch-case` để xử lý các lựa chọn.
+  - Kiểm tra trùng `LicenseNumber` khi thêm phi công bằng LINQ (`pilots.Any`).
+  - Sắp xếp danh sách theo kinh nghiệm giảm dần bằng LINQ (`OrderByDescending`).
 
-Nếu dùng Visual Studio hoặc VSCode thì chỉ cần mở Program.cs bấm Run là tự động build tất cả.
-
-
-
----
-
-Bạn có cần mình đóng gói lại 3 file thành 1 file .zip để bạn tải luôn không?
-(Nếu cần mình nén gửi cho bạn luôn, nhanh gọn.)
-Bạn có muốn mình hướng dẫn tạo Project Console App để copy 3 file vào không? (mất khoảng 2 phút hướng dẫn).
-Bạn cần mình làm thêm phần tự kiểm tra nhập liệu không? (ví dụ nhập chữ vào chỗ cần số báo lỗi).
-
+Mã này đáp ứng đầy đủ yêu cầu của đề bài. Nếu bạn cần điều chỉnh hoặc bổ sung, hãy cho tôi biết!
