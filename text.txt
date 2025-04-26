@@ -1,37 +1,47 @@
-Ok! Mình sẽ làm bài tập trong ảnh bạn gửi rất đầy đủ nhé, bằng C# console app như yêu cầu.
+Ok!
+Bạn muốn tách thành 3 file, mình sẽ chia như sau cho gọn và đúng chuẩn:
+
+Pilot.cs → chứa lớp Pilot
+
+CommercialPilot.cs → chứa lớp CommercialPilot (kế thừa Pilot)
+
+Program.cs → chứa hàm Main() và menu
+
 
 
 ---
 
-1. Định nghĩa lớp Pilot:
+Dưới đây là nội dung từng file:
+
+
+---
+
+1. Pilot.cs
 
 using System;
 
 public class Pilot
 {
-    // Biến thành viên
     public string FullName { get; set; }
     public int BirthYear { get; set; }
     public int Experience { get; set; }
     public string LicenseNumber { get; set; }
     public string ContactInfo { get; set; }
 
-    // Phương thức nhập thông tin
     public virtual void Input()
     {
-        Console.Write("Nhập Họ tên: ");
+        Console.Write("Nhập họ tên: ");
         FullName = Console.ReadLine();
-        Console.Write("Nhập Năm sinh: ");
+        Console.Write("Nhập năm sinh: ");
         BirthYear = int.Parse(Console.ReadLine());
         Console.Write("Nhập số năm kinh nghiệm: ");
         Experience = int.Parse(Console.ReadLine());
-        Console.Write("Nhập số bằng lái: ");
+        Console.Write("Nhập số giấy phép: ");
         LicenseNumber = Console.ReadLine();
         Console.Write("Nhập thông tin liên lạc: ");
         ContactInfo = Console.ReadLine();
     }
 
-    // Phương thức hiển thị thông tin
     public virtual void Output()
     {
         Console.Write($"{FullName}\t{BirthYear}\t{Experience}\t{LicenseNumber}\t{ContactInfo}");
@@ -41,27 +51,27 @@ public class Pilot
 
 ---
 
-2. Định nghĩa lớp CommercialPilot (kế thừa Pilot):
+2. CommercialPilot.cs
+
+using System;
 
 public class CommercialPilot : Pilot
 {
     public string Airline { get; set; }
     public string AircraftType { get; set; }
 
-    // Ghi đè phương thức nhập
     public override void Input()
     {
-        base.Input(); // Gọi Input của lớp cha
+        base.Input();
         Console.Write("Nhập hãng hàng không: ");
         Airline = Console.ReadLine();
         Console.Write("Nhập loại máy bay: ");
         AircraftType = Console.ReadLine();
     }
 
-    // Ghi đè phương thức hiển thị
     public override void Output()
     {
-        base.Output(); // Gọi Output của lớp cha
+        base.Output();
         Console.WriteLine($"\t{Airline}\t{AircraftType}");
     }
 }
@@ -69,7 +79,7 @@ public class CommercialPilot : Pilot
 
 ---
 
-3. Chương trình chính (menu thao tác):
+3. Program.cs
 
 using System;
 using System.Collections.Generic;
@@ -77,89 +87,72 @@ using System.Linq;
 
 class Program
 {
-    static List<CommercialPilot> pilots = new List<CommercialPilot>();
-
     static void Main(string[] args)
     {
+        List<CommercialPilot> pilots = new List<CommercialPilot>();
         int choice;
+
         do
         {
-            Console.WriteLine("\n====== MENU ======");
+            Console.WriteLine("\n========== MENU ==========");
             Console.WriteLine("1. Thêm phi công thương mại");
-            Console.WriteLine("2. Hiển thị danh sách phi công");
-            Console.WriteLine("3. Sắp xếp theo số năm kinh nghiệm (giảm dần)");
+            Console.WriteLine("2. Hiển thị danh sách phi công thương mại");
+            Console.WriteLine("3. Sắp xếp danh sách theo số năm kinh nghiệm giảm dần");
             Console.WriteLine("4. Thoát");
-            Console.Write("Chọn chức năng: ");
+            Console.Write("Nhập lựa chọn của bạn: ");
             choice = int.Parse(Console.ReadLine());
 
             switch (choice)
             {
                 case 1:
-                    AddPilot();
+                    CommercialPilot cp = new CommercialPilot();
+                    Console.WriteLine("Nhập thông tin phi công thương mại:");
+                    cp.Input();
+                    pilots.Add(cp);
                     break;
                 case 2:
-                    DisplayPilots();
+                    Console.WriteLine("\nDanh sách phi công thương mại:");
+                    foreach (var pilot in pilots)
+                    {
+                        pilot.Output();
+                    }
                     break;
                 case 3:
-                    SortPilots();
+                    pilots = pilots.OrderByDescending(p => p.Experience).ToList();
+                    Console.WriteLine("\nDanh sách phi công sau khi sắp xếp:");
+                    foreach (var pilot in pilots)
+                    {
+                        pilot.Output();
+                    }
                     break;
                 case 4:
                     Console.WriteLine("Thoát chương trình.");
                     break;
                 default:
-                    Console.WriteLine("Lựa chọn không hợp lệ. Vui lòng chọn lại!");
+                    Console.WriteLine("Lựa chọn không hợp lệ. Vui lòng chọn lại.");
                     break;
             }
         } while (choice != 4);
-    }
-
-    // Chức năng thêm phi công
-    static void AddPilot()
-    {
-        CommercialPilot pilot = new CommercialPilot();
-        pilot.Input();
-        pilots.Add(pilot);
-        Console.WriteLine("Đã thêm phi công thành công!");
-    }
-
-    // Chức năng hiển thị danh sách
-    static void DisplayPilots()
-    {
-        Console.WriteLine("\nDanh sách phi công:");
-        Console.WriteLine("Họ tên\tNăm sinh\tKinh nghiệm\tSố bằng lái\tLiên lạc\tHãng\tLoại máy bay");
-        foreach (var pilot in pilots)
-        {
-            pilot.Output();
-        }
-    }
-
-    // Chức năng sắp xếp theo experience giảm dần
-    static void SortPilots()
-    {
-        pilots = pilots.OrderByDescending(p => p.Experience).ToList();
-        Console.WriteLine("Đã sắp xếp danh sách phi công theo kinh nghiệm giảm dần!");
     }
 }
 
 
 ---
 
-Tóm lại:
+Lưu ý khi bạn chạy:
 
-Đã tạo lớp Pilot và lớp kế thừa CommercialPilot.
+3 file này phải nằm cùng một thư mục.
 
-Đã viết Input và Output chuẩn yêu cầu.
+Project cần để modifier là public cho class Pilot, CommercialPilot để các file nhìn thấy nhau.
 
-Tạo menu console với các chức năng Thêm / Hiển thị / Sắp xếp / Thoát.
-
-Dữ liệu các trường khi hiển thị cách nhau bằng ký tự tab (\t).
-
-Sắp xếp danh sách theo experience giảm dần.
+Nếu dùng Visual Studio hoặc VSCode thì chỉ cần mở Program.cs bấm Run là tự động build tất cả.
 
 
 
 ---
 
-Bạn có cần mình gói gọn tất cả thành 1 file .cs hoàn chỉnh để bạn chỉ cần copy-paste chạy luôn không?
-Nếu cần, mình gửi luôn nhé! Bạn muốn không?
+Bạn có cần mình đóng gói lại 3 file thành 1 file .zip để bạn tải luôn không?
+(Nếu cần mình nén gửi cho bạn luôn, nhanh gọn.)
+Bạn có muốn mình hướng dẫn tạo Project Console App để copy 3 file vào không? (mất khoảng 2 phút hướng dẫn).
+Bạn cần mình làm thêm phần tự kiểm tra nhập liệu không? (ví dụ nhập chữ vào chỗ cần số báo lỗi).
 
