@@ -1,14 +1,9 @@
-Tôi sẽ hướng dẫn bạn từng bước để thực hiện bài tập WPF này. Chúng ta sẽ tạo giao diện, áp dụng Style/Template, và viết code xử lý logic theo yêu cầu. Tôi sẽ sử dụng C# và XAML để lập trình.
+Dựa trên hình ảnh bạn cung cấp, tôi sẽ tạo giao diện WPF sử dụng XAML để giống với giao diện trong hình. Giao diện bao gồm các thành phần như TextBox, DatePicker, Button, và DataGrid, với bố cục tương tự.
 
----
+Dưới đây là code XAML để tạo giao diện:
 
-### **Câu 1: Xây dựng ứng dụng WPF**
+### **MainWindow.xaml**
 
-#### **a) Tạo Window có giao diện như sau:**
-
-Chúng ta sẽ tạo một giao diện WPF với các thành phần như TextBox, DatePicker, Button, và DataGrid.
-
-**MainWindow.xaml:**
 ```xaml
 <Window x:Class="DoctorApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -17,12 +12,11 @@ Chúng ta sẽ tạo một giao diện WPF với các thành phần như TextBox
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Nhập thông tin bác sĩ -->
+        <!-- Phần nhập thông tin bác sĩ -->
         <StackPanel Grid.Row="0" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                 <Label Content="Mã:" Width="100"/>
@@ -45,81 +39,52 @@ Chúng ta sẽ tạo một giao diện WPF với các thành phần như TextBox
         <!-- DataGrid -->
         <DataGrid x:Name="dgDoctors" Grid.Row="1" AutoGenerateColumns="False" Margin="0,0,0,10">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Mã" Binding="{Binding Ma}"/>
-                <DataGridTextColumn Header="Họ tên" Binding="{Binding HoTen}"/>
-                <DataGridTextColumn Header="Ngày ký hợp đồng" Binding="{Binding NgayKy, StringFormat=d}"/>
-                <DataGridTextColumn Header="Chuyên ngành" Binding="{Binding ChuyenNganh}"/>
+                <DataGridTextColumn Header="Mã" Binding="{Binding Ma}" Width="*"/>
+                <DataGridTextColumn Header="Họ tên" Binding="{Binding HoTen}" Width="*"/>
+                <DataGridTextColumn Header="Ngày ký hợp đồng" Binding="{Binding NgayKy, StringFormat=d}" Width="*"/>
+                <DataGridTextColumn Header="Chuyên ngành" Binding="{Binding ChuyenNganh}" Width="*"/>
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Nút -->
+        <!-- Các nút -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button x:Name="btnMauNenBeige" Content="Màu nền Beige" Margin="5" Click="btnMauNenBeige_Click"/>
-            <Button x:Name="btnDoiMauGreen" Content="Đoạn việc cơ màu Green" Margin="5" Click="btnDoiMauGreen_Click"/>
-            <Button x:Name="btnNhap" Content="Nhập" Margin="5" Click="btnNhap_Click"/>
-            <Button x:Name="btnThongKe" Content="Thống kê" Margin="5" Click="btnThongKe_Click"/>
+            <Button x:Name="btnMauNenBeige" Content="Màu nền Beige" Margin="5" Width="120"/>
+            <Button x:Name="btnDoiMauGreen" Content="Đoạn việc cơ màu Green" Margin="5" Width="150"/>
+            <Button x:Name="btnNhap" Content="Nhập" Margin="5" Width="80"/>
+            <Button x:Name="btnThongKe" Content="Thống kê" Margin="5" Width="80"/>
         </StackPanel>
     </Grid>
 </Window>
 ```
 
-#### **b) Sử dụng Style, Template để định dạng:**
+### **Giải thích giao diện:**
 
-- **DataGrid:** Tiêu đề cột chữ đậm, căn giữa, cột "Ngày ký hợp đồng" màu xanh.
-- **IsMouseOver:** Đặt màu chữ và nền thành xanh khi hover.
+1. **Tiêu đề Window:** "THÔNG TIN BÁC SĨ".
+2. **Phần nhập liệu:**
+   - **Mã:** TextBox (`txtMa`).
+   - **Họ tên:** TextBox (`txtHoTen`).
+   - **Ngày ký hợp đồng:** DatePicker (`dpNgayKy`).
+   - **Chuyên ngành:** TextBox (`txtChuyenNganh`).
+   - Các thành phần được sắp xếp trong `StackPanel` với bố cục ngang (Label + TextBox/DatePicker).
+3. **DataGrid:** Hiển thị danh sách bác sĩ với các cột "Mã", "Họ tên", "Ngày ký hợp đồng", "Chuyên ngành".
+4. **Các nút:**
+   - "Màu nền Beige".
+   - "Đoạn việc cơ màu Green" (theo đúng nội dung trong hình).
+   - "Nhập".
+   - "Thống kê".
+   - Các nút được đặt trong một `StackPanel` ngang, căn giữa.
 
-**Cập nhật MainWindow.xaml với Style:**
-```xaml
-<Window.Resources>
-    <!-- Style cho DataGrid Column Header -->
-    <Style TargetType="DataGridColumnHeader">
-        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-        <Setter Property="FontWeight" Value бир: "Bold"/>
-    </Style>
+### **Code-behind (MainWindow.xaml.cs):**
 
-    <!-- Style cho cột "Ngày ký hợp đồng" -->
-    <Style TargetType="DataGridCell" x:Key="NgayKyCellStyle">
-        <Setter Property="Foreground" Value="Blue"/>
-    </Style>
-
-    <!-- Style cho DataGrid Row khi hover -->
-    <Style TargetType="DataGridRow">
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="LightBlue"/>
-                <Setter Property="Foreground" Value="Blue"/>
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-</Window.Resources>
-```
-
-Áp dụng Style cho cột "Ngày ký hợp đồng" trong DataGrid:
-```xaml
-<DataGridTextColumn Header="Ngày ký hợp đồng" Binding="{Binding NgayKy, StringFormat=d}" CellStyle="{StaticResource NgayKyCellStyle}"/>
-```
-
----
-
-### **Câu 2: Viết lệnh thực hiện các yêu cầu**
-
-#### **Code-behind (MainWindow.xaml.cs):**
-
-Đầu tiên, tạo một lớp Doctor để lưu thông tin bác sĩ và danh sách bác sĩ:
+Để giao diện hoạt động, bạn cần tạo một lớp `Doctor` để lưu thông tin bác sĩ và gán dữ liệu cho DataGrid. Dưới đây là code cơ bản:
 
 ```csharp
-using System;
-using System.Collections.Generic;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace DoctorApp
 {
     public partial class MainWindow : Window
     {
-        private List<Doctor> doctors = new List<Doctor>();
-
         public MainWindow()
         {
             InitializeComponent();
@@ -130,106 +95,15 @@ namespace DoctorApp
         {
             public string Ma { get; set; }
             public string HoTen { get; set; }
-            public DateTime NgayKy { get; set; }
+            public System.DateTime NgayKy { get; set; }
             public string ChuyenNganh { get; set; }
-        }
-
-        // Nút "Màu nền Beige"
-        private void btnMauNenBeige_Click(object sender, RoutedEventArgs e)
-        {
-            this.Background = new SolidColorBrush(Colors.Beige);
-        }
-
-        // Nút "Đoạn việc cơ màu Green" (Đổi màu DataGrid thành Green)
-        private void btnDoiMauGreen_Click(object sender, RoutedEventArgs e)
-        {
-            dgDoctors.Background = new SolidColorBrush(Colors.Green);
-        }
-
-        // Nút "Nhập"
-        private void btnNhap_Click(object sender, RoutedEventArgs e)
-        {
-            // Kiểm tra dữ liệu hợp lệ
-            if (string.IsNullOrEmpty(txtMa.Text) || string.IsNullOrEmpty(txtHoTen.Text) ||
-                dpNgayKy.SelectedDate == null || string.IsNullOrEmpty(txtChuyenNganh.Text))
-            {
-                MessageBox.Show("Vui lòng nhập đầy đủ thông tin!");
-                return;
-            }
-
-            DateTime ngayKy = dpNgayKy.SelectedDate.Value;
-            if (ngayKy > DateTime.Now)
-            {
-                MessageBox.Show("Ngày ký hợp đồng phải nhỏ hơn hoặc bằng ngày hiện tại!");
-                return;
-            }
-
-            // Thêm bác sĩ vào danh sách
-            doctors.Add(new Doctor
-            {
-                Ma = txtMa.Text,
-                HoTen = txtHoTen.Text,
-                NgayKy = ngayKy,
-                ChuyenNganh = txtChuyenNganh.Text
-            });
-
-            // Cập nhật DataGrid
-            dgDoctors.ItemsSource = null;
-            dgDoctors.ItemsSource = doctors;
-
-            // Xóa các trường nhập liệu
-            txtMa.Text = "";
-            txtHoTen.Text = "";
-            dpNgayKy.SelectedDate = null;
-            txtChuyenNganh.Text = "";
-        }
-
-        // Nút "Thống kê"
-        private void btnThongKe_Click(object sender, RoutedEventArgs e)
-        {
-            if (dpNgayKy.SelectedDate == null)
-            {
-                MessageBox.Show("Vui lòng chọn ngày ký hợp đồng để thống kê!");
-                return;
-            }
-
-            DateTime selectedDate = dpNgayKy.SelectedDate.Value;
-
-            // a) Lọc bác sĩ có ngày ký hợp đồng trước ngày được chọn
-            var filteredByDate = doctors.FindAll(d => d.NgayKy < selectedDate);
-
-            // b) Lọc bác sĩ ngành "Ngoại"
-            var filteredByNgoai = doctors.FindAll(d => d.ChuyenNganh.ToLower() == "ngoại");
-
-            // Kết hợp kết quả: Lấy danh sách bác sĩ thỏa mãn cả hai điều kiện
-            var result = filteredByDate.FindAll(d => filteredByNgoai.Contains(d));
-
-            // Hiển thị kết quả lên DataGrid
-            dgDoctors.ItemsSource = null;
-            dgDoctors.ItemsSource = result;
         }
     }
 }
 ```
 
----
+### **Ghi chú:**
+- Giao diện đã được thiết kế giống hệt trong hình, với bố cục và các thành phần tương ứng.
+- Hiện tại, các nút chưa có chức năng (chỉ có giao diện). Nếu bạn muốn thêm chức năng (như đổi màu, nhập dữ liệu, thống kê), hãy tham khảo giải pháp trong câu hỏi trước hoặc yêu cầu thêm.
 
-### **Câu 3: Kiểm tra dữ liệu và xử lý ngoại lệ**
-
-Điều này đã được thực hiện trong sự kiện `btnNhap_Click`:
-- Kiểm tra tất cả các trường có dữ liệu hay không.
-- Kiểm tra ngày ký hợp đồng phải nhỏ hơn hoặc bằng ngày hiện tại (hôm nay là 02/06/2025).
-
----
-
-### **Tổng kết**
-
-- **Giao diện:** Đã tạo Window với các thành phần yêu cầu (TextBox, DatePicker, Button, DataGrid).
-- **Style/Template:** Áp dụng Style cho DataGrid (cột chữ đậm, căn giữa, cột "Ngày ký hợp đồng" màu xanh, hover màu xanh).
-- **Logic:**
-  - Nút "Màu nền Beige": Đổi màu nền Window thành Beige.
-  - Nút "Đoạn việc cơ màu Green": Đổi màu nền DataGrid thành Green.
-  - Nút "Nhập": Kiểm tra dữ liệu và thêm bác sĩ vào danh sách.
-  - Nút "Thống kê": Lọc và hiển thị danh sách bác sĩ có ngày ký hợp đồng trước ngày chọn và thuộc ngành "Ngoại".
-
-Nếu bạn cần chạy thử hoặc chỉnh sửa thêm, hãy cho tôi biết!
+Nếu bạn cần chỉnh sửa hoặc thêm tính năng, hãy cho tôi biết!
