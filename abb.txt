@@ -1,223 +1,361 @@
+Dưới đây là hướng dẫn chi tiết để bạn thực hiện bài tập WPF về quản lý thông tin công nhân. Tôi đã thiết kế ứng dụng theo đúng yêu cầu: giao diện chính với các trường nhập, DataGrid, các nút chức năng (Thêm/Sửa/Xóa/Xem danh sách/Kết thúc), validation với thông báo lỗi (sử dụng MessageBox cho đơn giản, hoặc bạn có thể thêm Label lỗi nếu cần nâng cao), style/template cho Button/TextBox/DataGrid, và Window mới cho "Xem danh sách" (lọc lương >=1000).
+
+### Bước 1: Tạo project
+- Mở Visual Studio, tạo WPF App (.NET Framework hoặc .NET Core).
+- Đặt tên project: `QuanLyCongNhan`.
+- Thêm class `CongNhan.cs`.
+- Thêm new Window tên `WindowXemDanhSach`.
+- Cả hai Window đều set `WindowStartupLocation="CenterScreen"` trong XAML để xuất hiện giữa màn hình.
+
+### CongNhan.cs (Class dữ liệu)
+```csharp
 using System;
-using System.Collections.Generic;
+
+namespace QuanLyCongNhan
+{
+    public class CongNhan
+    {
+        public string MaCongNhan { get; set; }
+        public string HoTen { get; set; }
+        public DateTime? NgaySinh { get; set; }
+        public string GioiTinh { get; set; }
+        public string DiaChi { get; set; }
+        public double Luong { get; set; }
+    }
+}
+```
+
+### MainWindow.xaml (Giao diện chính)
+```xml
+<Window x:Class="QuanLyCongNhan.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:QuanLyCongNhan"
+        Title="Quan ly cong nhan" Height="600" Width="800" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <!-- Style cho Button: bo góc tròn, nền vàng, chữ xanh -->
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="Yellow"/>
+            <Setter Property="Foreground" Value="Green"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="10" Background="{TemplateBinding Background}" BorderThickness="1" BorderBrush="Black">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+        <!-- Style cho TextBox: khi focus, font Arial 10pt, nền #ffc -->
+        <Style TargetType="TextBox">
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="FontFamily" Value="Arial"/>
+                    <Setter Property="FontSize" Value="10"/>
+                    <Setter Property="Background" Value="#FFC"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Style cho DataGrid header: bold, center -->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <!-- Style cho cột Lương: chữ xanh, căn phải -->
+        <Style x:Key="LuongCellStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Green"/>
+            <Setter Property="TextAlignment" Value="Right"/>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="Ma cong nhan:"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Name="txtMa"/>
+
+        <Label Grid.Row="1" Grid.Column="0" Content="Ho ten:"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Name="txtHoTen"/>
+
+        <Label Grid.Row="2" Grid.Column="0" Content="Ngay sinh:"/>
+        <DatePicker Grid.Row="2" Grid.Column="1" Name="dpNgaySinh"/>
+
+        <Label Grid.Row="3" Grid.Column="0" Content="Gioi tinh:"/>
+        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+            <RadioButton Name="rbNam" Content="Nam" Margin="5"/>
+            <RadioButton Name="rbNu" Content="Nu" Margin="5"/>
+        </StackPanel>
+
+        <Label Grid.Row="4" Grid.Column="0" Content="Dia chi:"/>
+        <ComboBox Grid.Row="4" Grid.Column="1" Name="cbDiaChi">
+            <ComboBoxItem Content="Ha Noi"/>
+            <ComboBoxItem Content="TP. HCM"/>
+            <ComboBoxItem Content="Da Nang"/>
+            <ComboBoxItem Content="Khac"/>
+        </ComboBox>
+
+        <Label Grid.Row="5" Grid.Column="0" Content="Luong:"/>
+        <TextBox Grid.Row="5" Grid.Column="1" Name="txtLuong"/>
+
+        <!-- Nút chức năng -->
+        <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+            <Button Name="btnThem" Content="Them" Click="btnThem_Click"/>
+            <Button Name="btnSua" Content="Sua" Click="btnSua_Click"/>
+            <Button Name="btnXoa" Content="Xoa" Click="btnXoa_Click"/>
+            <Button Name="btnXemDanhSach" Content="Xem danh sach" Click="btnXemDanhSach_Click"/>
+            <Button Name="btnKetThuc" Content="Ket thuc" Click="btnKetThuc_Click"/>
+        </StackPanel>
+
+        <!-- DataGrid -->
+        <DataGrid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Name="dgCongNhan" AutoGenerateColumns="False" SelectionChanged="dgCongNhan_SelectionChanged" Margin="0,10,0,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Ma cong nhan" Binding="{Binding MaCongNhan}" Width="*"/>
+                <DataGridTextColumn Header="Ho ten" Binding="{Binding HoTen}" Width="*"/>
+                <DataGridTextColumn Header="Ngay sinh" Binding="{Binding NgaySinh, StringFormat=dd/MM/yyyy}" Width="*"/>
+                <DataGridTextColumn Header="Gioi tinh" Binding="{Binding GioiTinh}" Width="*"/>
+                <DataGridTextColumn Header="Dia chi" Binding="{Binding DiaChi}" Width="*"/>
+                <DataGridTextColumn Header="Luong" Binding="{Binding Luong, StringFormat={}{0:N0}}" Width="*" ElementStyle="{StaticResource LuongCellStyle}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
+```
+
+### MainWindow.xaml.cs (Code behind)
+```csharp
+using System;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 
-public class Person
+namespace QuanLyCongNhan
 {
-    private string hoTen;
-    private string diaChi;
-
-    public string HoTen
+    public partial class MainWindow : Window
     {
-        get { return hoTen; }
-        set { hoTen = value; }
-    }
+        public ObservableCollection<CongNhan> ListCongNhan { get; set; } = new ObservableCollection<CongNhan>();
+        private CongNhan selectedCongNhan = null;
 
-    public string DiaChi
-    {
-        get { return diaChi; }
-        set { diaChi = value; }
-    }
-
-    public virtual void NhapThongTin()
-    {
-        Console.Write("Nhap ho ten: ");
-        HoTen = Console.ReadLine();
-        Console.Write("Nhap dia chi: ");
-        DiaChi = Console.ReadLine();
-    }
-
-    public virtual double TinhLuong()
-    {
-        return 0;
-    }
-}
-
-public class NhanVien : Person
-{
-    private string maNhanVien;
-    private string chucVu;
-    private double heSoLuong;
-
-    public string MaNhanVien
-    {
-        get { return maNhanVien; }
-        set { maNhanVien = value; }
-    }
-
-    public string ChucVu
-    {
-        get { return chucVu; }
-        set { chucVu = value; }
-    }
-
-    public double HeSoLuong
-    {
-        get { return heSoLuong; }
-        set { heSoLuong = value; }
-    }
-
-    public override void NhapThongTin()
-    {
-        base.NhapThongTin();
-        Console.Write("Nhap ma nhan vien: ");
-        MaNhanVien = Console.ReadLine();
-        Console.Write("Nhap chuc vu: ");
-        ChucVu = Console.ReadLine();
-        Console.Write("Nhap he so luong: ");
-        HeSoLuong = double.Parse(Console.ReadLine());
-    }
-
-    public double GetHeSoChucVu()
-    {
-        if (ChucVu == "Giam doc") return 10;
-        else if (ChucVu == "Pho phong") return 6;
-        else return 2;
-    }
-
-    public override double TinhLuong()
-    {
-        return HeSoLuong * GetHeSoChucVu() * 2000000;
-    }
-}
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        List<NhanVien> danhSach = new List<NhanVien>();
-        bool running = true;
-
-        while (running)
+        public MainWindow()
         {
-            Console.WriteLine("Menu:");
-            Console.WriteLine("1. Them");
-            Console.WriteLine("2. Hien thi danh sach");
-            Console.WriteLine("3. Sap xep");
-            Console.WriteLine("4. Tim kiem");
-            Console.WriteLine("5. Sua");
-            Console.WriteLine("6. Xoa");
-            Console.WriteLine("7. Thoat");
-            Console.Write("Chon chuc nang: ");
-            int choice;
-            if (!int.TryParse(Console.ReadLine(), out choice))
+            InitializeComponent();
+            dgCongNhan.ItemsSource = ListCongNhan;
+        }
+
+        // Thêm: Validate và thêm vào DataGrid, hiển thị MessageBox xác nhận
+        private void btnThem_Click(object sender, RoutedEventArgs e)
+        {
+            string error = ValidateInput();
+            if (!string.IsNullOrEmpty(error))
             {
-                Console.WriteLine("Lua chon khong hop le. Thu lai.");
-                continue;
+                MessageBox.Show(error, "Loi nhap lieu");
+                return;
             }
 
-            switch (choice)
+            var cn = CreateCongNhanFromInput();
+
+            ListCongNhan.Add(cn);
+            MessageBox.Show($"Da them cong nhan:\nMa: {cn.MaCongNhan}\nHo ten: {cn.HoTen}\nNgay sinh: {cn.NgaySinh?.ToString("dd/MM/yyyy")}\nGioi tinh: {cn.GioiTinh}\nDia chi: {cn.DiaChi}\nLuong: {cn.Luong:N0}");
+            ClearInput();
+        }
+
+        // Sửa: Chọn từ DataGrid, cập nhật
+        private void btnSua_Click(object sender, RoutedEventArgs e)
+        {
+            if (selectedCongNhan == null)
             {
-                case 1:
-                    NhanVien nv = new NhanVien();
-                    nv.NhapThongTin();
-                    if (danhSach.Any(x => x.MaNhanVien == nv.MaNhanVien))
-                    {
-                        Console.WriteLine("Ma nhan vien da ton tai. Khong the them.");
-                    }
-                    else
-                    {
-                        danhSach.Add(nv);
-                        Console.WriteLine("Them nhan vien thanh cong.");
-                    }
-                    break;
-
-                case 2:
-                    if (danhSach.Count == 0)
-                    {
-                        Console.WriteLine("Danh sach rong.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Ma\tHo Ten\tDia Chi\tChuc Vu\tHe So Chuc Vu\tHe So Luong\tLuong");
-                        foreach (var item in danhSach)
-                        {
-                            Console.WriteLine($"{item.MaNhanVien}\t{item.HoTen}\t{item.DiaChi}\t{item.ChucVu}\t{item.GetHeSoChucVu()}\t{item.HeSoLuong}\t{item.TinhLuong()}");
-                        }
-                    }
-                    break;
-
-                case 3:
-                    if (danhSach.Count == 0)
-                    {
-                        Console.WriteLine("Danh sach rong.");
-                    }
-                    else
-                    {
-                        var sortedList = danhSach.OrderBy(x => x.HoTen).ThenBy(x => x.TinhLuong()).ToList();
-                        Console.WriteLine("Danh sach sau khi sap xep:");
-                        Console.WriteLine("Ma\tHo Ten\tDia Chi\tChuc Vu\tHe So Chuc Vu\tHe So Luong\tLuong");
-                        foreach (var item in sortedList)
-                        {
-                            Console.WriteLine($"{item.MaNhanVien}\t{item.HoTen}\t{item.DiaChi}\t{item.ChucVu}\t{item.GetHeSoChucVu()}\t{item.HeSoLuong}\t{item.TinhLuong()}");
-                        }
-                    }
-                    break;
-
-                case 4: // Tim kiem
-                    Console.Write("Nhap ma nhan vien can tim: ");
-                    string maTim = Console.ReadLine();
-                    var nvTim = danhSach.FirstOrDefault(x => x.MaNhanVien == maTim);
-                    if (nvTim != null)
-                    {
-                        Console.WriteLine("Ma\tHo Ten\tDia Chi\tChuc Vu\tHe So Chuc Vu\tHe So Luong\tLuong");
-                        Console.WriteLine($"{nvTim.MaNhanVien}\t{nvTim.HoTen}\t{nvTim.DiaChi}\t{nvTim.ChucVu}\t{nvTim.GetHeSoChucVu()}\t{nvTim.HeSoLuong}\t{nvTim.TinhLuong()}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Khong tim thay nhan vien.");
-                    }
-                    break;
-
-                case 5: // Sua
-                    Console.Write("Nhap ma nhan vien can sua: ");
-                    string maSua = Console.ReadLine();
-                    var nvSua = danhSach.FirstOrDefault(x => x.MaNhanVien == maSua);
-                    if (nvSua != null)
-                    {
-                        Console.WriteLine("Nhap thong tin moi:");
-                        nvSua.NhapThongTin();
-                        // Cap nhat ma moi, nhung kiem tra trung
-                        if (danhSach.Any(x => x != nvSua && x.MaNhanVien == nvSua.MaNhanVien))
-                        {
-                            Console.WriteLine("Ma nhan vien moi da ton tai. Khong the cap nhat.");
-                            // Hoan tac ma, nhung de don gian, giu nguyen
-                        }
-                        else
-                        {
-                            Console.WriteLine("Cap nhat thanh cong.");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Khong tim thay nhan vien.");
-                    }
-                    break;
-
-                case 6: // Xoa
-                    Console.Write("Nhap ma nhan vien can xoa: ");
-                    string maXoa = Console.ReadLine();
-                    var nvXoa = danhSach.FirstOrDefault(x => x.MaNhanVien == maXoa);
-                    if (nvXoa != null)
-                    {
-                        danhSach.Remove(nvXoa);
-                        Console.WriteLine("Xoa thanh cong.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Khong tim thay nhan vien.");
-                    }
-                    break;
-
-                case 7:
-                    running = false;
-                    Console.WriteLine("Thoat chuong trinh.");
-                    break;
-
-                default:
-                    Console.WriteLine("Lua chon khong hop le. Thu lai.");
-                    break;
+                MessageBox.Show("Vui long chon cong nhan de sua!");
+                return;
             }
+
+            string error = ValidateInput();
+            if (!string.IsNullOrEmpty(error))
+            {
+                MessageBox.Show(error, "Loi nhap lieu");
+                return;
+            }
+
+            UpdateCongNhanFromInput(selectedCongNhan);
+            dgCongNhan.Items.Refresh();
+            MessageBox.Show("Da sua thanh cong!");
+            ClearInput();
+            selectedCongNhan = null;
+        }
+
+        // Xóa: Dựa trên mã
+        private void btnXoa_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtMa.Text))
+            {
+                MessageBox.Show("Vui long nhap ma cong nhan de xoa!");
+                return;
+            }
+
+            var cnToRemove = ListCongNhan.FirstOrDefault(cn => cn.MaCongNhan == txtMa.Text);
+            if (cnToRemove == null)
+            {
+                MessageBox.Show("Khong tim thay cong nhan voi ma nay!");
+                return;
+            }
+
+            ListCongNhan.Remove(cnToRemove);
+            MessageBox.Show("Da xoa thanh cong!");
+            ClearInput();
+        }
+
+        // Xem danh sách: Mở Window mới với lương >=1000
+        private void btnXemDanhSach_Click(object sender, RoutedEventArgs e)
+        {
+            WindowXemDanhSach w = new WindowXemDanhSach(ListCongNhan.Where(cn => cn.Luong >= 1000).ToList());
+            w.ShowDialog();
+        }
+
+        // Kết thúc: Đóng app
+        private void btnKetThuc_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        // Chọn hàng trong DataGrid: Đổ dữ liệu lên form
+        private void dgCongNhan_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            selectedCongNhan = dgCongNhan.SelectedItem as CongNhan;
+            if (selectedCongNhan != null)
+            {
+                txtMa.Text = selectedCongNhan.MaCongNhan;
+                txtHoTen.Text = selectedCongNhan.HoTen;
+                dpNgaySinh.SelectedDate = selectedCongNhan.NgaySinh;
+                if (selectedCongNhan.GioiTinh == "Nam") rbNam.IsChecked = true;
+                else if (selectedCongNhan.GioiTinh == "Nu") rbNu.IsChecked = true;
+                cbDiaChi.SelectedItem = cbDiaChi.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Content.ToString() == selectedCongNhan.DiaChi);
+                txtLuong.Text = selectedCongNhan.Luong.ToString();
+            }
+        }
+
+        // Validate input
+        private string ValidateInput()
+        {
+            if (string.IsNullOrEmpty(txtMa.Text)) return "Ma cong nhan khong duoc rong!";
+            if (string.IsNullOrEmpty(txtHoTen.Text)) return "Ho ten khong duoc rong!";
+            if (dpNgaySinh.SelectedDate == null) return "Vui long chon ngay sinh!";
+            if (!rbNam.IsChecked.Value && !rbNu.IsChecked.Value) return "Vui long chon gioi tinh!";
+            if (cbDiaChi.SelectedItem == null) return "Vui long chon dia chi!";
+            if (string.IsNullOrEmpty(txtLuong.Text) || !double.TryParse(txtLuong.Text, out double luong) || luong < 0) return "Luong phai la so duong!";
+            return null;
+        }
+
+        // Tạo CongNhan từ input
+        private CongNhan CreateCongNhanFromInput()
+        {
+            return new CongNhan
+            {
+                MaCongNhan = txtMa.Text,
+                HoTen = txtHoTen.Text,
+                NgaySinh = dpNgaySinh.SelectedDate,
+                GioiTinh = rbNam.IsChecked == true ? "Nam" : "Nu",
+                DiaChi = (cbDiaChi.SelectedItem as ComboBoxItem)?.Content.ToString(),
+                Luong = double.Parse(txtLuong.Text)
+            };
+        }
+
+        // Cập nhật CongNhan từ input
+        private void UpdateCongNhanFromInput(CongNhan cn)
+        {
+            cn.MaCongNhan = txtMa.Text;
+            cn.HoTen = txtHoTen.Text;
+            cn.NgaySinh = dpNgaySinh.SelectedDate;
+            cn.GioiTinh = rbNam.IsChecked == true ? "Nam" : "Nu";
+            cn.DiaChi = (cbDiaChi.SelectedItem as ComboBoxItem)?.Content.ToString();
+            cn.Luong = double.Parse(txtLuong.Text);
+        }
+
+        // Xóa input
+        private void ClearInput()
+        {
+            txtMa.Text = "";
+            txtHoTen.Text = "";
+            dpNgaySinh.SelectedDate = null;
+            rbNam.IsChecked = false;
+            rbNu.IsChecked = false;
+            cbDiaChi.SelectedIndex = -1;
+            txtLuong.Text = "";
         }
     }
 }
+```
+
+### WindowXemDanhSach.xaml (Window xem danh sách lương >=1000)
+```xml
+<Window x:Class="QuanLyCongNhan.WindowXemDanhSach"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Danh sach cong nhan luong >= 1000" Height="400" Width="800" WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tiêu đề -->
+        <Label Content="Danh sach cong nhan co luong >= 1000" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"/>
+
+        <!-- DataGrid -->
+        <DataGrid Grid.Row="1" Name="dgDanhSach" AutoGenerateColumns="False" Margin="0,10,0,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Ma cong nhan" Binding="{Binding MaCongNhan}" Width="*"/>
+                <DataGridTextColumn Header="Ho ten" Binding="{Binding HoTen}" Width="*"/>
+                <DataGridTextColumn Header="Ngay sinh" Binding="{Binding NgaySinh, StringFormat=dd/MM/yyyy}" Width="*"/>
+                <DataGridTextColumn Header="Gioi tinh" Binding="{Binding GioiTinh}" Width="*"/>
+                <DataGridTextColumn Header="Dia chi" Binding="{Binding DiaChi}" Width="*"/>
+                <DataGridTextColumn Header="Luong" Binding="{Binding Luong, StringFormat={}{0:N0}}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
+```
+
+### WindowXemDanhSach.xaml.cs
+```csharp
+using System.Collections.Generic;
+using System.Windows;
+
+namespace QuanLyCongNhan
+{
+    public partial class WindowXemDanhSach : Window
+    {
+        public WindowXemDanhSach(List<CongNhan> danhSach)
+        {
+            InitializeComponent();
+            dgDanhSach.ItemsSource = danhSach;
+        }
+    }
+}
+```
+
+### Hướng dẫn chạy và kiểm tra
+- Build và run project.
+- Thử thêm công nhân: Nhập đầy đủ, nhấn Thêm → MessageBox xác nhận, thêm vào DataGrid.
+- Validation: Nếu sai (rỗng, lương không số), hiển thị MessageBox lỗi.
+- Sửa: Chọn hàng trong DataGrid → dữ liệu lên form → chỉnh sửa → nhấn Sửa.
+- Xóa: Nhập mã → nhấn Xóa.
+- Xem danh sách: Mở Window mới với filter lương >=1000.
+- Kết thúc: Đóng app.
+- Style: Kiểm tra button bo góc vàng chữ xanh, TextBox focus Arial 10pt #ffc, DataGrid header bold center, cột Lương xanh phải nghìn.
+
+Nếu cần thêm (ví dụ: Label lỗi bên cạnh ô thay MessageBox, hoặc unique mã), cho tôi biết để chỉnh!
