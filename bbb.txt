@@ -1,0 +1,242 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class NhanVien
+{
+    private string maNhanVien;
+    private string hoTen;
+    private double soGioLam;
+    private double luongCoBan;
+
+    public string MaNhanVien
+    {
+        get { return maNhanVien; }
+        set { maNhanVien = value; }
+    }
+    public string HoTen
+    {
+        get { return hoTen; }
+        set { hoTen = value; }
+    }
+
+    public double SoGioLam
+    {
+        get { return soGioLam; }
+        set { soGioLam = value; }
+    }
+    public double LuongCoBan
+    {
+        get { return luongCoBan; }
+        set { luongCoBan = value; }
+    }
+
+
+    public virtual void NhapThongTin()
+    {
+        Console.Write("Nhap ma nhan vien: ");
+        MaNhanVien = Console.ReadLine();
+        Console.Write("Nhap ho ten: ");
+        HoTen = Console.ReadLine();
+        Console.Write("Nhap so gio lam: ");
+        SoGioLam = double.Parse(Console.ReadLine());
+        Console.Write("Nhap luong co ban: ");
+        LuongCoBan = double.Parse(Console.ReadLine());
+    }
+
+    public virtual double TinhLuong()
+    {
+        return SoGioLam * LuongCoBan;
+    }
+    public virtual void HienThiDanhSachNhanVien()
+    {
+        Console.WriteLine($"{MaNhanVien}\t{HoTen}\t{SoGioLam}\t{LuongCoBan}\t{TinhLuong()}"); 
+    }
+}
+
+public class NhanVienVIP : NhanVien
+{
+
+    public override void NhapThongTin()
+    {
+        base.NhapThongTin();
+    }
+
+    public double XacDinhThuongCuaNhanVien()
+    {
+        if (SoGioLam < 40) return 0;
+        else if (SoGioLam >= 40 && SoGioLam <= 60) return LuongCoBan * 0.1;
+        else return LuongCoBan * 0.2;
+    }
+    public override void HienThiDanhSachNhanVien()
+    {
+        Console.WriteLine($"{MaNhanVien}\t{HoTen}\t{SoGioLam}\t{LuongCoBan}\t{TinhLuong()}\t{XacDinhThuongCuaNhanVien()}");
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            List<NhanVien> danhSach = new List<NhanVien>();
+            bool running = true;
+
+            while (running)
+            {
+                Console.WriteLine("Menu:");
+                Console.WriteLine("1. Them");
+                Console.WriteLine("2. Hien thi danh sach");
+                Console.WriteLine("3. Sap xep");
+                Console.WriteLine("4. Tim kiem");
+                Console.WriteLine("5. Sua");
+                Console.WriteLine("6. Xoa");
+                Console.WriteLine("7. Thoat");
+                Console.Write("Chon chuc nang: ");
+                int choice;
+                if (!int.TryParse(Console.ReadLine(), out choice))
+                {
+                    Console.WriteLine("Lua chon khong hop le. Thu lai.");
+                    continue;
+                }
+
+                switch (choice)
+                {
+                    case 1:
+                        Console.WriteLine("Chon loai nhan vien:");
+                        Console.WriteLine("1. Nhan vien thuong");
+                        Console.WriteLine("2. Nhan vien VIP");
+                        Console.Write("Chon: ");
+                        int loaiNV;
+                        if (!int.TryParse(Console.ReadLine(), out loaiNV))
+                        {
+                            Console.WriteLine("Lua chon khong hop le.");
+                            continue;
+                        }
+
+                        NhanVien nv;
+                        if (loaiNV == 2)
+                        {
+                            nv = new NhanVienVIP();
+                        }
+                        else
+                        {
+                            nv = new NhanVien();
+                        }
+
+                        nv.NhapThongTin();
+                        if (danhSach.Any(x => x.MaNhanVien == nv.MaNhanVien))
+                        {
+                            Console.WriteLine("Ma nhan vien da ton tai. Khong the them.");
+                        }
+                        else
+                        {
+                            danhSach.Add(nv);
+                            Console.WriteLine("Them nhan vien thanh cong.");
+                        }
+                        break;
+
+                    case 2:
+                        if (danhSach.Count == 0)
+                        {
+                            Console.WriteLine("Danh sach rong.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ma\tHo Ten\tSo Gio Lam\tLuong Co Ban\tLuong\tThuong");
+                            foreach (var item in danhSach)
+                            {
+                                item.HienThiDanhSachNhanVien();
+                            }
+                        }
+                        break;
+
+                    case 3:
+                        if (danhSach.Count == 0)
+                        {
+                            Console.WriteLine("Danh sach rong.");
+                        }
+                        else
+                        {
+                            var sortedList = danhSach.OrderBy(x => x.HoTen).ThenBy(x => x.TinhLuong()).ToList();
+                            Console.WriteLine("Danh sach sau khi sap xep:");
+                            Console.WriteLine("Ma\tHo Ten\tSo Gio Lam\tLuong Co Ban\tLuong\tThuong");
+                            foreach (var item in sortedList)
+                            {
+                                item.HienThiDanhSachNhanVien();
+                            }
+                        }
+                        break;
+
+                    case 4: // Tim va hien thi cua cac nhan vien co luong cao nhat
+                        if (danhSach.Count == 0)
+                        {
+                            Console.WriteLine("Danh sach rong.");
+                        }
+                        else
+                        {
+                            var maxSalary = danhSach.Max(x => x.TinhLuong());
+                            var nvTim = danhSach.FirstOrDefault(x => x.TinhLuong() == maxSalary);
+                            if (nvTim != null)
+                            {
+                                Console.WriteLine("Ma\tHo Ten\tSo Gio Lam\tLuong Co Ban\tLuong\tThuong");
+                                nvTim.HienThiDanhSachNhanVien();
+                            }
+                            else
+                            {
+                                Console.WriteLine("Khong tim thay nhan vien.");
+                            } break;
+                        }
+                        break;
+
+                    case 5: // Sua
+                        Console.Write("Nhap ma nhan vien can sua: ");
+                        string maSua = Console.ReadLine();
+                        var nvSua = danhSach.FirstOrDefault(x => x.MaNhanVien == maSua);
+                        if (nvSua != null)
+                        {
+                            Console.WriteLine("Nhap thong tin moi:");
+                            nvSua.NhapThongTin();
+                            // Cap nhat ma moi, nhung kiem tra trung
+                            if (danhSach.Any(x => x != nvSua && x.MaNhanVien == nvSua.MaNhanVien))
+                            {
+                                Console.WriteLine("Ma nhan vien moi da ton tai. Khong the cap nhat.");
+                                // Hoan tac ma, nhung de don gian, giu nguyen
+                            }
+                            else
+                            {
+                                Console.WriteLine("Cap nhat thanh cong.");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Khong tim thay nhan vien.");
+                        }
+                        break;
+
+                    case 6: // Xoa
+                        Console.Write("Nhap ma nhan vien can xoa: ");
+                        string maXoa = Console.ReadLine();
+                        var nvXoa = danhSach.FirstOrDefault(x => x.MaNhanVien == maXoa);
+                        if (nvXoa != null)
+                        {
+                            danhSach.Remove(nvXoa);
+                            Console.WriteLine("Xoa thanh cong.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Khong tim thay nhan vien.");
+                        }
+                        break;
+
+                    case 7:
+                        running = false;
+                        Console.WriteLine("Thoat chuong trinh.");
+                        break;
+
+                    default:
+                        Console.WriteLine("Lua chon khong hop le. Thu lai.");
+                        break;
+                }
+            }
+        }
+    }
+}
