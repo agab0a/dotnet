@@ -1,250 +1,223 @@
-Dưới đây là hướng dẫn chi tiết để bạn thực hiện bài tập dựa trên nội dung trong ảnh. Tôi giả định các trường nhập là "Mã nhân viên", "Họ tên", "Giới tính", "Số tiền bán hàng" (dựa trên ngữ cảnh "so tien banh hang" trong Câu 2, có thể là lỗi đánh máy từ "Số tiền bán hàng" thay vì "So dien thoai bang hang"). Tiêu đề cửa sổ là "Thông tin nhân viên", nhưng code xử lý như "khách hàng" theo mô tả ở Câu 2 (có thể là lỗi trong đề bài, tôi điều chỉnh để phù hợp).
-
-Bài tập yêu cầu tạo ứng dụng WPF với giao diện, style/template, và code behind cho các nút lệnh. Tôi sẽ cung cấp mã nguồn đầy đủ, bạn có thể copy-paste vào Visual Studio để chạy.
-
-### Bước 1: Tạo project
-- Mở Visual Studio, tạo mới WPF App (.NET Framework hoặc .NET Core, tùy phiên bản).
-- Đặt tên solution theo yêu cầu: `De3_[3 số cuối mã sinh viên của bạn]` (ví dụ: `De3_412` nếu mã SV của bạn kết thúc bằng 412).
-- Code Style và Template đặt trong Window.Resources (như yêu cầu).
-- Thêm class mới tên `KhachHang.cs`.
-
-### KhachHang.cs (Class dữ liệu)
-```csharp
 using System;
-
-namespace De3  // Thay De3 bằng tên namespace của project bạn
-{
-    public class KhachHang
-    {
-        public string Ma { get; set; }
-        public string HoTen { get; set; }
-        public string GioiTinh { get; set; }
-        public double SoTienBanHang { get; set; }
-        public double HoaHong { get; set; }
-    }
-}
-```
-
-### MainWindow.xaml (Giao diện chính, Câu 1 a và b)
-Sử dụng Grid để sắp xếp. Áp dụng Style cho TextBox (font size 15, chữ green, nền pink). Tôi thêm 3 Label với style màu như trong sơ đồ (DarkOrange font 35 bold, LimeGreen, LightSteelBlue). Giả định không cần Template phức tạp vì đề nói "Style (và/học) Template", tôi dùng Style đơn giản.
-
-```xml
-<Window x:Class="De3.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:De3"
-        Title="Thong tin nhan vien" Height="600" Width="800">
-    <Window.Resources>
-        <!-- Style cho TextBox (font 15, chữ green, nền pink) -->
-        <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Foreground" Value="Green"/>
-            <Setter Property="Background" Value="Pink"/>
-        </Style>
-        <!-- Style cho Label màu -->
-        <Style x:Key="DarkOrangeLabelStyle" TargetType="Label">
-            <Setter Property="Background" Value="DarkOrange"/>
-            <Setter Property="FontSize" Value="35"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="5"/>
-        </Style>
-        <Style x:Key="LimeGreenLabelStyle" TargetType="Label">
-            <Setter Property="Background" Value="LimeGreen"/>
-            <Setter Property="Margin" Value="5"/>
-        </Style>
-        <Style x:Key="LightSteelBlueLabelStyle" TargetType="Label">
-            <Setter Property="Background" Value="LightSteelBlue"/>
-            <Setter Property="Margin" Value="5"/>
-        </Style>
-    </Window.Resources>
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="150"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <Label Grid.Row="0" Grid.Column="0" Content="Ma nhan vien:"/>
-        <TextBox Grid.Row="0" Grid.Column="1" Name="txtMa" Style="{StaticResource InputTextBoxStyle}"/>
-
-        <Label Grid.Row="1" Grid.Column="0" Content="Ho ten:"/>
-        <TextBox Grid.Row="1" Grid.Column="1" Name="txtHoTen" Style="{StaticResource InputTextBoxStyle}"/>
-
-        <Label Grid.Row="2" Grid.Column="0" Content="Gioi tinh:"/>
-        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
-            <RadioButton Name="rbNam" Content="Nam" Margin="5"/>
-            <RadioButton Name="rbNu" Content="Nu" Margin="5"/>
-        </StackPanel>
-
-        <Label Grid.Row="3" Grid.Column="0" Content="So tien ban hang:"/>
-        <TextBox Grid.Row="3" Grid.Column="1" Name="txtSoTien" Style="{StaticResource InputTextBoxStyle}"/>
-
-        <!-- Các label màu theo sơ đồ -->
-        <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Label Content="DarkOrange" Style="{StaticResource DarkOrangeLabelStyle}"/>
-            <Label Content="LimeGreen" Style="{StaticResource LimeGreenLabelStyle}"/>
-            <Label Content="LightSteelBlue" Style="{StaticResource LightSteelBlueLabelStyle}"/>
-        </StackPanel>
-
-        <!-- Nút lệnh -->
-        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-            <Button Name="btnThem" Content="Them" Click="btnThem_Click" Margin="5"/>
-            <Button Name="btnWindow2" Content="Window 2" Click="btnWindow2_Click" Margin="5"/>
-        </StackPanel>
-
-        <!-- DataGrid hiển thị danh sách -->
-        <DataGrid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Name="dgKhachHang" AutoGenerateColumns="True" Margin="0,10,0,0"/>
-    </Grid>
-</Window>
-```
-
-### MainWindow.xaml.cs (Code behind cho MainWindow, Câu 2 a và b)
-```csharp
-using System.Collections.ObjectModel;
-using System.Windows;
-using System;
-
-namespace De3
-{
-    public partial class MainWindow : Window
-    {
-        public ObservableCollection<KhachHang> ListKhachHang { get; set; } = new ObservableCollection<KhachHang>();
-
-        public MainWindow()
-        {
-            InitializeComponent();
-            dgKhachHang.ItemsSource = ListKhachHang;
-        }
-
-        // Câu 2 a: Nút Thêm - Thêm vào DataGrid, tính hoa hồng = 10% * số tiền bán hàng (giả định - là lỗi đánh máy, nên dùng +)
-        private void btnThem_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(txtMa.Text) || string.IsNullOrEmpty(txtHoTen.Text) || string.IsNullOrEmpty(txtSoTien.Text))
-            {
-                MessageBox.Show("Vui lòng nhập đầy đủ thông tin!");
-                return;
-            }
-
-            double soTien;
-            if (!double.TryParse(txtSoTien.Text, out soTien))
-            {
-                MessageBox.Show("Số tiền bán hàng phải là số!");
-                return;
-            }
-
-            string gioiTinh = rbNam.IsChecked == true ? "Nam" : (rbNu.IsChecked == true ? "Nu" : "");
-            if (string.IsNullOrEmpty(gioiTinh))
-            {
-                MessageBox.Show("Vui lòng chọn giới tính!");
-                return;
-            }
-
-            var kh = new KhachHang
-            {
-                Ma = txtMa.Text,
-                HoTen = txtHoTen.Text,
-                GioiTinh = gioiTinh,
-                SoTienBanHang = soTien,
-                HoaHong = soTien * 0.1  // 10% * số tiền
-            };
-
-            ListKhachHang.Add(kh);
-
-            // Xóa form sau khi thêm
-            txtMa.Text = "";
-            txtHoTen.Text = "";
-            txtSoTien.Text = "";
-            rbNam.IsChecked = false;
-            rbNu.IsChecked = false;
-        }
-
-        // Câu 2 b: Nút Window 2 - Mở Window2 (hiển thị khác, giả định hiển thị danh sách ở Window2)
-        private void btnWindow2_Click(object sender, RoutedEventArgs e)
-        {
-            Window2 w2 = new Window2(this);
-            w2.Show();
-        }
-    }
-}
-```
-
-### Window2.xaml (Cửa sổ thứ 2, background blue như yêu cầu)
-Thêm new Window vào project, đặt tên Window2.
-
-```xml
-<Window x:Class="De3.Window2"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Window 2" Height="400" Width="600" Background="LightBlue">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <!-- DataGrid hiển thị danh sách (hiển thị khác, ví dụ chỉ show vài cột) -->
-        <DataGrid Name="dgWindow2" AutoGenerateColumns="True" Margin="10"/>
-
-        <!-- Nút cho Câu 3 -->
-        <Button Grid.Row="1" Content="Chuyen sang cua so chinh (loc >0)" Click="btnChuyen_Click" Margin="10" HorizontalAlignment="Center"/>
-    </Grid>
-</Window>
-```
-
-### Window2.xaml.cs (Code behind cho Window2, Câu 2 b và Câu 3)
-```csharp
-using System.Windows;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace De3
+public class Person
 {
-    public partial class Window2 : Window
+    private string hoTen;
+    private string diaChi;
+
+    public string HoTen
     {
-        private MainWindow mainWindow;
+        get { return hoTen; }
+        set { hoTen = value; }
+    }
 
-        public Window2(MainWindow main)
+    public string DiaChi
+    {
+        get { return diaChi; }
+        set { diaChi = value; }
+    }
+
+    public virtual void NhapThongTin()
+    {
+        Console.Write("Nhap ho ten: ");
+        HoTen = Console.ReadLine();
+        Console.Write("Nhap dia chi: ");
+        DiaChi = Console.ReadLine();
+    }
+
+    public virtual double TinhLuong()
+    {
+        return 0;
+    }
+}
+
+public class NhanVien : Person
+{
+    private string maNhanVien;
+    private string chucVu;
+    private double heSoLuong;
+
+    public string MaNhanVien
+    {
+        get { return maNhanVien; }
+        set { maNhanVien = value; }
+    }
+
+    public string ChucVu
+    {
+        get { return chucVu; }
+        set { chucVu = value; }
+    }
+
+    public double HeSoLuong
+    {
+        get { return heSoLuong; }
+        set { heSoLuong = value; }
+    }
+
+    public override void NhapThongTin()
+    {
+        base.NhapThongTin();
+        Console.Write("Nhap ma nhan vien: ");
+        MaNhanVien = Console.ReadLine();
+        Console.Write("Nhap chuc vu: ");
+        ChucVu = Console.ReadLine();
+        Console.Write("Nhap he so luong: ");
+        HeSoLuong = double.Parse(Console.ReadLine());
+    }
+
+    public double GetHeSoChucVu()
+    {
+        if (ChucVu == "Giam doc") return 10;
+        else if (ChucVu == "Pho phong") return 6;
+        else return 2;
+    }
+
+    public override double TinhLuong()
+    {
+        return HeSoLuong * GetHeSoChucVu() * 2000000;
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        List<NhanVien> danhSach = new List<NhanVien>();
+        bool running = true;
+
+        while (running)
         {
-            InitializeComponent();
-            this.mainWindow = main;
-            // Hiển thị khác (ví dụ: toàn bộ danh sách ở Window2)
-            dgWindow2.ItemsSource = main.ListKhachHang;
-        }
-
-        // Câu 3: Lọc khach hang co so tien >0, chuyen sang DataGrid cua so chinh, thong bao neu khong co
-        private void btnChuyen_Click(object sender, RoutedEventArgs e)
-        {
-            List<KhachHang> filtered = mainWindow.ListKhachHang.Where(k => k.SoTienBanHang > 0).ToList();
-
-            if (filtered.Count == 0)
+            Console.WriteLine("Menu:");
+            Console.WriteLine("1. Them");
+            Console.WriteLine("2. Hien thi danh sach");
+            Console.WriteLine("3. Sap xep");
+            Console.WriteLine("4. Tim kiem");
+            Console.WriteLine("5. Sua");
+            Console.WriteLine("6. Xoa");
+            Console.WriteLine("7. Thoat");
+            Console.Write("Chon chuc nang: ");
+            int choice;
+            if (!int.TryParse(Console.ReadLine(), out choice))
             {
-                MessageBox.Show("Khong co khach hang nao co so tien ban hang > 0!");
-                return;
+                Console.WriteLine("Lua chon khong hop le. Thu lai.");
+                continue;
             }
 
-            mainWindow.ListKhachHang.Clear();
-            foreach (var item in filtered)
+            switch (choice)
             {
-                mainWindow.ListKhachHang.Add(item);
-            }
+                case 1:
+                    NhanVien nv = new NhanVien();
+                    nv.NhapThongTin();
+                    if (danhSach.Any(x => x.MaNhanVien == nv.MaNhanVien))
+                    {
+                        Console.WriteLine("Ma nhan vien da ton tai. Khong the them.");
+                    }
+                    else
+                    {
+                        danhSach.Add(nv);
+                        Console.WriteLine("Them nhan vien thanh cong.");
+                    }
+                    break;
 
-            MessageBox.Show("Da chuyen thanh cong cac khach hang co so tien > 0 sang cua so chinh!");
+                case 2:
+                    if (danhSach.Count == 0)
+                    {
+                        Console.WriteLine("Danh sach rong.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Ma\tHo Ten\tDia Chi\tChuc Vu\tHe So Chuc Vu\tHe So Luong\tLuong");
+                        foreach (var item in danhSach)
+                        {
+                            Console.WriteLine($"{item.MaNhanVien}\t{item.HoTen}\t{item.DiaChi}\t{item.ChucVu}\t{item.GetHeSoChucVu()}\t{item.HeSoLuong}\t{item.TinhLuong()}");
+                        }
+                    }
+                    break;
+
+                case 3:
+                    if (danhSach.Count == 0)
+                    {
+                        Console.WriteLine("Danh sach rong.");
+                    }
+                    else
+                    {
+                        var sortedList = danhSach.OrderBy(x => x.HoTen).ThenBy(x => x.TinhLuong()).ToList();
+                        Console.WriteLine("Danh sach sau khi sap xep:");
+                        Console.WriteLine("Ma\tHo Ten\tDia Chi\tChuc Vu\tHe So Chuc Vu\tHe So Luong\tLuong");
+                        foreach (var item in sortedList)
+                        {
+                            Console.WriteLine($"{item.MaNhanVien}\t{item.HoTen}\t{item.DiaChi}\t{item.ChucVu}\t{item.GetHeSoChucVu()}\t{item.HeSoLuong}\t{item.TinhLuong()}");
+                        }
+                    }
+                    break;
+
+                case 4: // Tim kiem
+                    Console.Write("Nhap ma nhan vien can tim: ");
+                    string maTim = Console.ReadLine();
+                    var nvTim = danhSach.FirstOrDefault(x => x.MaNhanVien == maTim);
+                    if (nvTim != null)
+                    {
+                        Console.WriteLine("Ma\tHo Ten\tDia Chi\tChuc Vu\tHe So Chuc Vu\tHe So Luong\tLuong");
+                        Console.WriteLine($"{nvTim.MaNhanVien}\t{nvTim.HoTen}\t{nvTim.DiaChi}\t{nvTim.ChucVu}\t{nvTim.GetHeSoChucVu()}\t{nvTim.HeSoLuong}\t{nvTim.TinhLuong()}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Khong tim thay nhan vien.");
+                    }
+                    break;
+
+                case 5: // Sua
+                    Console.Write("Nhap ma nhan vien can sua: ");
+                    string maSua = Console.ReadLine();
+                    var nvSua = danhSach.FirstOrDefault(x => x.MaNhanVien == maSua);
+                    if (nvSua != null)
+                    {
+                        Console.WriteLine("Nhap thong tin moi:");
+                        nvSua.NhapThongTin();
+                        // Cap nhat ma moi, nhung kiem tra trung
+                        if (danhSach.Any(x => x != nvSua && x.MaNhanVien == nvSua.MaNhanVien))
+                        {
+                            Console.WriteLine("Ma nhan vien moi da ton tai. Khong the cap nhat.");
+                            // Hoan tac ma, nhung de don gian, giu nguyen
+                        }
+                        else
+                        {
+                            Console.WriteLine("Cap nhat thanh cong.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Khong tim thay nhan vien.");
+                    }
+                    break;
+
+                case 6: // Xoa
+                    Console.Write("Nhap ma nhan vien can xoa: ");
+                    string maXoa = Console.ReadLine();
+                    var nvXoa = danhSach.FirstOrDefault(x => x.MaNhanVien == maXoa);
+                    if (nvXoa != null)
+                    {
+                        danhSach.Remove(nvXoa);
+                        Console.WriteLine("Xoa thanh cong.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Khong tim thay nhan vien.");
+                    }
+                    break;
+
+                case 7:
+                    running = false;
+                    Console.WriteLine("Thoat chuong trinh.");
+                    break;
+
+                default:
+                    Console.WriteLine("Lua chon khong hop le. Thu lai.");
+                    break;
+            }
         }
     }
 }
-```
-
-### Hướng dẫn chạy và nộp
-- Build và run project để kiểm tra.
-- Sau khi xong, nén thư mục solution thành file zip với tên giống solution (ví dụ De3_412.zip).
-- Lưu ý: Đề có thể có lỗi đánh máy (nhân viên/khách hàng, -10%), tôi điều chỉnh logic hợp lý. Nếu cần thêm validation hoặc template phức tạp hơn (như ControlTemplate cho button), cho biết thêm để chỉnh.
-
-Nếu ảnh có phần bị cắt mà bạn cần bổ sung, hoặc có lỗi, hãy gửi thêm chi tiết!
