@@ -1,0 +1,258 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class KhachHang
+{
+    private string maKhachHang;
+    private string gioiTinh;
+    private int soLuongMua;
+    private double donGia;
+
+    public string MaKhachHang
+    {
+        get { return maKhachHang; }
+        set { maKhachHang = value; }
+    }
+    public string GioiTinh
+    {
+        get { return gioiTinh; }
+        set { gioiTinh = value; }
+    }
+    public int SoLuongMua
+    {
+        get { return soLuongMua; }
+        set { soLuongMua = value; }
+    }
+    public double DonGia
+    {
+        get { return donGia; }
+        set { donGia = value; }
+    }
+
+    public virtual void NhapThongTin()
+    {
+        Console.Write("Nhap ma khach hang: ");
+        MaKhachHang = Console.ReadLine();
+        Console.Write("Nhap gioi tinh: ");
+        GioiTinh = Console.ReadLine();
+        Console.Write("Nhap so luong mua: ");
+        SoLuongMua = int.Parse(Console.ReadLine());
+        Console.Write("Nhap don gia: ");
+        DonGia = double.Parse(Console.ReadLine());
+    }
+
+    public virtual double TinhTongTien()
+    {
+        return SoLuongMua * DonGia;
+    }
+    public virtual void HienThiThongTin()
+    {
+
+        Console.WriteLine($"{MaKhachHang}\t{GioiTinh}\t{SoLuongMua}\t{DonGia}\t{TinhTongTien()}");
+    }
+}
+
+public class KhachHangVIP : KhachHang
+{
+    private DateTime ngayLamThe;
+    public DateTime NgayLamThe
+    {
+        get { return ngayLamThe; }
+        set { ngayLamThe = value; }
+    }
+    public override void NhapThongTin()
+    {
+        base.NhapThongTin();
+        Console.Write("Nhap ngay lam the (dd/MM/yyyy): ");
+        NgayLamThe = DateTime.ParseExact(Console.ReadLine(), "dd/MM/yyyy", null);
+    }
+    public override double TinhTongTien()
+    {
+        double tongTien = base.TinhTongTien();
+        if (tongTien <= 1000)
+        {
+            return tongTien * 0.9; // Giam 10% neu hoa don <= 1000
+        }
+        else
+        {
+            return tongTien * 0.85; // Giam 15% neu hoa don > 1000
+        }
+        
+    }
+    public override void HienThiThongTin()
+    {
+        Console.WriteLine($"{MaKhachHang}\t{GioiTinh}\t{NgayLamThe:dd/MM/yyyy}\t{SoLuongMua}\t{DonGia}\t{TinhTongTien()}");
+    }
+
+
+}
+
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        List<KhachHang> danhSach = new List<KhachHang>();
+        bool running = true;
+
+        while (running)
+        {
+            Console.WriteLine("Menu:");
+            Console.WriteLine("1. Nhap Thong Tin");
+            Console.WriteLine("2. Hien thi danh sach");
+            Console.WriteLine("3. Sap xep");
+            Console.WriteLine("4. Tim kiem");
+            Console.WriteLine("5. Sua");
+            Console.WriteLine("6. Xoa");
+            Console.WriteLine("7. Thoat");
+            Console.Write("Chon chuc nang: ");
+            int choice;
+            if (!int.TryParse(Console.ReadLine(), out choice))
+            {
+                Console.WriteLine("Lua chon khong hop le. Thu lai.");
+                continue;
+            }
+
+            switch (choice)
+            {
+                case 1:
+                    Console.WriteLine("Cho loai khach hang:");
+                    Console.WriteLine("1. Khach hang thuong");
+                    Console.WriteLine("2. Khach hang VIP");
+                    int loaiKhachHang;
+                    if (!int.TryParse(Console.ReadLine(), out loaiKhachHang))
+                    {
+                        Console.WriteLine("Lua chon khong hop le. Thu lai.");
+                        continue;
+                    }
+
+                    KhachHang nv;
+                    if (loaiKhachHang == 2)
+                    {
+                        nv = new KhachHangVIP();
+                    }
+                    else
+                    {
+                        nv = new KhachHang();
+                    }
+
+                    nv.NhapThongTin();
+                    if (danhSach.Any(x => x.MaKhachHang == nv.MaKhachHang))
+                    {
+                        Console.WriteLine("Ma khach hang da ton tai. Khong the them.");
+                    }
+                    else
+                    {
+                        danhSach.Add(nv);
+                        Console.WriteLine("Them khach hang thanh cong.");
+                    }
+                    break;
+
+                case 2:
+                    if (danhSach.Count == 0)
+                    {
+                        Console.WriteLine("Danh sach rong.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Ma Khach Hang\tGioi Tinh\tNgay Lam The\tSo Luong Mua\tDon Gia\tTong Tien");
+                        foreach (var item in danhSach)
+                        {
+                            item.HienThiThongTin();
+                        }
+                    }
+                    break;
+                case 3:
+                    Console.WriteLine("Sap xep danh sach:");
+                    Console.WriteLine("1. Sap xep theo ma khach hang");
+                    Console.WriteLine("2. Sap xep theo ten khach hang");
+                    int choiceSort;
+                    if (!int.TryParse(Console.ReadLine(), out choiceSort))
+                    {
+                        Console.WriteLine("Lua chon khong hop le. Thu lai.");
+                        continue;
+                    }
+
+                    switch (choiceSort)
+                    {
+                        case 1:
+                            danhSach.Sort((x, y) => x.MaKhachHang.CompareTo(y.MaKhachHang));
+                            break;
+                        case 2:
+                            danhSach.Sort((x, y) => x.GioiTinh.CompareTo(y.GioiTinh));
+                            break;
+                        default:
+                            Console.WriteLine("Lua chon khong hop le. Thu lai.");
+                            break;
+                    }
+                    Console.WriteLine("Danh sach sau khi sap xep:");
+                    Console.WriteLine("Ma Khach Hang\tGioi Tinh\tNgay Lam The\tSo Luong Mua\tDon Gia\tTong Tien");
+                    foreach (var item in danhSach)
+                    {
+                        item.HienThiThongTin();
+                    }
+                    break;
+                case 4: // Tim kiem theo ma khach hang
+                    Console.Write("Nhap ma khach hang can tim: ");
+                    string maTimKiem = Console.ReadLine();
+                    var nvTimKiem = danhSach.FirstOrDefault(x => x.MaKhachHang == maTimKiem);
+                    if (nvTimKiem != null)
+                    {
+                        Console.WriteLine("Ma Khach Hang\tGioi Tinh\tNgay Lam The\tSo Luong Mua\tDon Gia\tTong Tien");
+                        nvTimKiem.HienThiThongTin();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Khong tim thay khach hang.");
+                    }
+                    break;
+                case 5: // Sua thong tin khach hang theo ma khach hang
+                    Console.Write("Nhap ma khach hang can sua: ");
+                    string maSua = Console.ReadLine();
+                    var nvSua = danhSach.FirstOrDefault(x => x.MaKhachHang == maSua);
+                    if (nvSua != null)
+                    {
+                        Console.WriteLine("Nhap thong tin moi cho khach hang:");
+                        nvSua.NhapThongTin();
+                        Console.WriteLine("Sua thong tin thanh cong.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Khong tim thay khach hang.");
+                    }
+                    break;
+
+                case 6: // Xoa va hien thi danh sach sau khi xoa    
+                    Console.Write("Nhap ma khach hang can xoa: ");
+                    string maXoa = Console.ReadLine();
+                    var nvXoa = danhSach.FirstOrDefault(x => x.MaKhachHang == maXoa);
+                    if (nvXoa != null)
+                    {
+                        danhSach.Remove(nvXoa);
+                        Console.WriteLine("Xoa thanh cong.");
+                        Console.WriteLine("Danh sach sau khi xoa:");
+                        Console.WriteLine("Ma Khach Hang\tGioi Tinh\tNgay Lam The\tSo Luong Mua\tDon Gia\tTong Tien");
+                        foreach (var item in danhSach)
+                        {
+                            item.HienThiThongTin();
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Khong tim thay khach hang.");
+                    }
+                    break;
+
+                case 7:
+                    running = false;
+                    Console.WriteLine("Thoat chuong trinh.");
+                    break;
+
+                default:
+                    Console.WriteLine("Lua chon khong hop le. Thu lai.");
+                    break;
+            }
+        }
+    }
+}
