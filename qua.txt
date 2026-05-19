@@ -1,0 +1,226 @@
+Chào bạn, đây là một đề thi thực hành lập trình ứng dụng desktop với **WPF (C# và XAML)**. Đề bài yêu cầu các kỹ năng cơ bản về thiết kế giao diện (Layout), định dạng (Style, Template), Binding dữ liệu và xử lý sự kiện.
+Dưới đây là hướng dẫn chi tiết từng bước để giải quyết trọn vẹn đề bài này.
+### BƯỚC CHUẨN BỊ
+ 1. Mở Visual Studio -> Tạo Project mới dạng **WPF Application** (.NET Framework hoặc .NET Core/5/6+ đều được).
+ 2. Tạo thư mục KT\<HoTen_MaSV> ở ổ D theo yêu cầu (bạn tự thực hiện trên máy).
+ 3. **Tạo lớp đối tượng (Model):** Tạo một class BenhNhan.cs để lưu trữ dữ liệu. Việc này rất quan trọng để Binding lên DataGrid.
+```csharp
+public class BenhNhan
+{
+    public string Ma { get; set; }
+    public string HoTen { get; set; }
+    public DateTime NgayVaoVien { get; set; }
+    public string LoaiBenhNhan { get; set; }
+}
+
+```
+### CÂU 1: XÂY DỰNG GIAO DIỆN WPF (3 điểm)
+Mở file MainWindow.xaml và viết mã XAML. Ta sẽ kết hợp cả ý **a** (Bố cục) và ý **b** (Style, Template) vào đây.
+```xml
+<Window x:Class="WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Thông tin bệnh nhân" Height="450" Width="600">
+    
+    <Window.Resources>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Width" Value="80"/>
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Margin" Value="10,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse Fill="Gold" Stroke="Gray" StrokeThickness="1"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="THÔNG TIN BỆNH NHÂN" Foreground="Blue" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+        <Border Grid.Row="1" BorderBrush="Green" BorderThickness="2" Background="Beige" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Mã" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+                <TextBox Name="txtMa" Grid.Row="0" Grid.Column="1" Margin="0,5"/>
+
+                <TextBlock Text="Họ tên" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+                <TextBox Name="txtHoTen" Grid.Row="1" Grid.Column="1" Margin="0,5"/>
+
+                <TextBlock Text="Ngày vào viện" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
+                <DatePicker Name="dpNgayVaoVien" Grid.Row="2" Grid.Column="1" Margin="0,5" Width="150" HorizontalAlignment="Left"/>
+
+                <TextBlock Text="Loại bệnh nhân" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
+                <ComboBox Name="cboLoaiBenhNhan" Grid.Row="3" Grid.Column="1" Margin="0,5" Width="150" HorizontalAlignment="Left"/>
+
+                <DataGrid Name="dgDanhSach" Grid.Row="4" Grid.ColumnSpan="2" Margin="0,10,0,0" 
+                          AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Mã" Binding="{Binding Ma}" Width="*"/>
+                        <DataGridTextColumn Header="Họ tên" Binding="{Binding HoTen}" Width="2*"/>
+                        <DataGridTextColumn Header="Ngày vào viện" Binding="{Binding NgayVaoVien, StringFormat=dd/MM/yyyy}" Width="*"/>
+                        <DataGridTextColumn Header="Loại bệnh nhân" Binding="{Binding LoaiBenhNhan}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,15,0,0">
+            <Button Name="btnNhap" Content="Nhập" Click="btnNhap_Click"/>
+            <Button Name="btnChiTiet" Content="Chi tiết" Click="btnChiTiet_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
+
+```
+### CÂU 2 & CÂU 3: XỬ LÝ SỰ KIỆN VÀ LOGIC (7 điểm)
+Mở file MainWindow.xaml.cs (Code-behind) và thực hiện viết code.
+```csharp
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+
+namespace WpfApp
+{
+    public partial class MainWindow : Window
+    {
+        // Sử dụng ObservableCollection để DataGrid tự động cập nhật khi có dữ liệu mới
+        ObservableCollection<BenhNhan> danhSachBenhNhan = new ObservableCollection<BenhNhan>();
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            
+            // Nạp dữ liệu cho ComboBox
+            cboLoaiBenhNhan.Items.Add("Nội trú");
+            cboLoaiBenhNhan.Items.Add("Ngoại trú");
+            
+            // Gán nguồn dữ liệu cho DataGrid
+            dgDanhSach.ItemsSource = danhSachBenhNhan;
+        }
+
+        // CÂU 3: Bắt lỗi và CÂU 2a: Thêm dữ liệu
+        private void btnNhap_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 1. Kiểm tra tất cả các trường đều phải có dữ liệu
+                if (string.IsNullOrWhiteSpace(txtMa.Text) || 
+                    string.IsNullOrWhiteSpace(txtHoTen.Text) || 
+                    cboLoaiBenhNhan.SelectedItem == null || 
+                    dpNgayVaoVien.SelectedDate == null)
+                {
+                    MessageBox.Show("Vui lòng nhập đầy đủ thông tin!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return; // Dừng lại không thực hiện tiếp
+                }
+
+                // 2. Kiểm tra ngày vào viện phải nhỏ hơn hoặc bằng ngày hiện tại
+                DateTime ngayVaoVien = dpNgayVaoVien.SelectedDate.Value;
+                if (ngayVaoVien.Date > DateTime.Now.Date)
+                {
+                    MessageBox.Show("Ngày vào viện không được lớn hơn ngày hiện tại!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // CÂU 2a: Nếu dữ liệu hợp lệ, thêm vào DataGrid
+                BenhNhan bnMoi = new BenhNhan()
+                {
+                    Ma = txtMa.Text,
+                    HoTen = txtHoTen.Text,
+                    NgayVaoVien = ngayVaoVien,
+                    LoaiBenhNhan = cboLoaiBenhNhan.SelectedItem.ToString()
+                };
+
+                danhSachBenhNhan.Add(bnMoi);
+
+                // Xóa trắng form sau khi nhập thành công (Tùy chọn cho UX tốt hơn)
+                txtMa.Clear();
+                txtHoTen.Clear();
+                cboLoaiBenhNhan.SelectedIndex = -1;
+                dpNgayVaoVien.SelectedDate = null;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Đã xảy ra lỗi: " + ex.Message);
+            }
+        }
+
+        // CÂU 2b: Hiển thị danh sách "Nội trú" trên Window khác
+        private void btnChiTiet_Click(object sender, RoutedEventArgs e)
+        {
+            // Lọc danh sách chỉ lấy bệnh nhân "Nội trú"
+            var danhSachNoiTru = danhSachBenhNhan.Where(bn => bn.LoaiBenhNhan == "Nội trú").ToList();
+
+            // Mở Window mới và truyền danh sách sang
+            WindowChiTiet windowChiTiet = new WindowChiTiet(danhSachNoiTru);
+            windowChiTiet.ShowDialog(); 
+        }
+    }
+}
+
+```
+### BƯỚC CUỐI: TẠO WINDOW CHI TIẾT (Cho ý 2b)
+Bạn cần tạo thêm một Window mới (Chuột phải vào Project -> Add -> Window (WPF) -> đặt tên là WindowChiTiet.xaml).
+**Giao diện WindowChiTiet.xaml (Chỉ cần 1 DataGrid đơn giản):**
+```xml
+<Window x:Class="WpfApp.WindowChiTiet"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Danh sách bệnh nhân Nội trú" Height="300" Width="500">
+    <Grid>
+        <DataGrid Name="dgNoiTru" AutoGenerateColumns="True" IsReadOnly="True" Margin="10"/>
+    </Grid>
+</Window>
+
+```
+**Code-behind WindowChiTiet.xaml.cs:**
+Nhận dữ liệu từ MainWindow và gán vào DataGrid.
+```csharp
+using System.Collections.Generic;
+using System.Windows;
+
+namespace WpfApp
+{
+    public partial class WindowChiTiet : Window
+    {
+        // Constructor nhận vào một List<BenhNhan>
+        public WindowChiTiet(List<BenhNhan> dsNoiTru)
+        {
+            InitializeComponent();
+            
+            // Đổ dữ liệu vào DataGrid
+            dgNoiTru.ItemsSource = dsNoiTru;
+        }
+    }
+}
+
+```
+Chúc bạn thực hành tốt và làm bài thi đạt điểm cao! Nếu có đoạn code nào chưa hiểu rõ, bạn cứ hỏi lại nhé.
