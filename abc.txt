@@ -1,223 +1,243 @@
+**Hướng dẫn chi tiết giải đề WPF C# (Patient Information Management)**
+
+### **1. Chuẩn bị project**
+1. Mở Visual Studio → **Create a new project** → Chọn **WPF App (.NET Framework)** hoặc **WPF App** (.NET 6/8).
+2. Đặt tên project ví dụ: `KTNguyenThiAnh_2019876578` (theo yêu cầu tạo thư mục).
+3. Thêm class Model:
+
+```csharp
+// Patient.cs
+public class Patient
+{
+    public string Ma { get; set; } = string.Empty;
+    public string HoTen { get; set; } = string.Empty;
+    public DateTime NgayVaoVien { get; set; }
+    public string LoaiBenhNhan { get; set; } = string.Empty; // "Nội trú" hoặc "Ngoại trú"
+}
+```
+
+### **2. Câu 1a: Thiết kế giao diện MainWindow.xaml**
+
+```xaml
+<Window x:Class="YourProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="THÔNG TIN BỆNH NHÂN" Height="650" Width="900"
+        Background="White">
+
+    <Grid Margin="10">
+        <!-- Tiêu đề -->
+        <Border Background="Beige" CornerRadius="5" Padding="10" Margin="0,0,0,10">
+            <TextBlock Text="THÔNG TIN BỆNH NHÂN" 
+                       FontSize="24" FontWeight="Bold" 
+                       HorizontalAlignment="Center" Foreground="Blue"/>
+        </Border>
+
+        <!-- Form nhập liệu -->
+        <Grid Margin="0,80,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Content="Mã" Grid.Row="0"/>
+            <TextBox x:Name="txtMa" Grid.Row="0" Grid.Column="1" Margin="5"/>
+
+            <Label Content="Họ tên" Grid.Row="1"/>
+            <TextBox x:Name="txtHoTen" Grid.Row="1" Grid.Column="1" Margin="5"/>
+
+            <Label Content="Ngày vào viện" Grid.Row="2"/>
+            <DatePicker x:Name="dpNgayVao" Grid.Row="2" Grid.Column="1" Margin="5" 
+                        SelectedDateFormat="Short" />
+
+            <Label Content="Loại bệnh nhân" Grid.Row="3"/>
+            <ComboBox x:Name="cbLoai" Grid.Row="3" Grid.Column="1" Margin="5">
+                <ComboBoxItem>Nội trú</ComboBoxItem>
+                <ComboBoxItem>Ngoại trú</ComboBoxItem>
+            </ComboBox>
+        </Grid>
+
+        <!-- DataGrid -->
+        <DataGrid x:Name="dgPatients" Margin="0,220,0,80" AutoGenerateColumns="False" 
+                  IsReadOnly="True" GridLinesVisibility="All">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Mã" Binding="{Binding Ma}" Width="100"/>
+                <DataGridTextColumn Header="Họ tên" Binding="{Binding HoTen}" Width="200"/>
+                <DataGridTextColumn Header="Ngày vào viện" Binding="{Binding NgayVaoVien, StringFormat=dd/MM/yyyy}" Width="120"/>
+                <DataGridTextColumn Header="Loại bệnh nhân" Binding="{Binding LoaiBenhNhan}" Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Hai nút vàng ellipse -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,20">
+            <Button x:Name="btnNhap" Content="Nhập" Width="120" Height="50" Margin="10" Click="btnNhap_Click"/>
+            <Button x:Name="btnChiTiet" Content="Chi tiết" Width="120" Height="50" Margin="10" Click="btnChiTiet_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
+```
+
+### **3. Câu 1b: Style & Template (Resources)**
+
+Thêm vào `<Window.Resources>`:
+
+```xaml
+<Window.Resources>
+    <!-- Style cho DataGrid -->
+    <Style TargetType="DataGrid">
+        <Setter Property="ColumnHeaderHeight" Value="40"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="LightGray"/>
+        <Setter Property="VerticalGridLinesBrush" Value="LightGray"/>
+    </Style>
+
+    <!-- Style cho Button ellipse vàng -->
+    <Style x:Key="GoldEllipseButton" TargetType="Button">
+        <Setter Property="Background" Value="Gold"/>
+        <Setter Property="Foreground" Value="Black"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Ellipse x:Name="ellipse" Fill="{TemplateBinding Background}" Stroke="DarkGoldenrod" StrokeThickness="3"/>
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</Window.Resources>
+```
+
+Áp dụng style cho 2 button:
+```xaml
+<Button Style="{StaticResource GoldEllipseButton}" ... />
+```
+
+### **4. Code Behind MainWindow.xaml.cs (Câu 2 & Câu 3)**
+
+```csharp
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 
-public class Person
+namespace YourProject
 {
-    private string hoTen;
-    private string diaChi;
-
-    public string HoTen
+    public partial class MainWindow : Window
     {
-        get { return hoTen; }
-        set { hoTen = value; }
-    }
+        private List<Patient> patients = new List<Patient>();
 
-    public string DiaChi
-    {
-        get { return diaChi; }
-        set { diaChi = value; }
-    }
-
-    public virtual void NhapThongTin()
-    {
-        Console.Write("Nhap ho ten: ");
-        HoTen = Console.ReadLine();
-        Console.Write("Nhap dia chi: ");
-        DiaChi = Console.ReadLine();
-    }
-
-    public virtual double TinhLuong()
-    {
-        return 0;
-    }
-}
-
-public class NhanVien : Person
-{
-    private string maNhanVien;
-    private string chucVu;
-    private double heSoLuong;
-
-    public string MaNhanVien
-    {
-        get { return maNhanVien; }
-        set { maNhanVien = value; }
-    }
-
-    public string ChucVu
-    {
-        get { return chucVu; }
-        set { chucVu = value; }
-    }
-
-    public double HeSoLuong
-    {
-        get { return heSoLuong; }
-        set { heSoLuong = value; }
-    }
-
-    public override void NhapThongTin()
-    {
-        base.NhapThongTin();
-        Console.Write("Nhap ma nhan vien: ");
-        MaNhanVien = Console.ReadLine();
-        Console.Write("Nhap chuc vu: ");
-        ChucVu = Console.ReadLine();
-        Console.Write("Nhap he so luong: ");
-        HeSoLuong = double.Parse(Console.ReadLine());
-    }
-
-    public double GetHeSoChucVu()
-    {
-        if (ChucVu == "Giam doc") return 10;
-        else if (ChucVu == "Pho phong") return 6;
-        else return 2;
-    }
-
-    public override double TinhLuong()
-    {
-        return HeSoLuong * GetHeSoChucVu() * 2000000;
-    }
-}
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        List<NhanVien> danhSach = new List<NhanVien>();
-        bool running = true;
-
-        while (running)
+        public MainWindow()
         {
-            Console.WriteLine("Menu:");
-            Console.WriteLine("1. Them");
-            Console.WriteLine("2. Hien thi danh sach");
-            Console.WriteLine("3. Sap xep");
-            Console.WriteLine("4. Tim kiem");
-            Console.WriteLine("5. Sua");
-            Console.WriteLine("6. Xoa");
-            Console.WriteLine("7. Thoat");
-            Console.Write("Chon chuc nang: ");
-            int choice;
-            if (!int.TryParse(Console.ReadLine(), out choice))
+            InitializeComponent();
+            dpNgayVao.SelectedDate = DateTime.Today; // Mặc định hôm nay
+        }
+
+        private void btnNhap_Click(object sender, RoutedEventArgs e)
+        {
+            // Câu 3: Validation
+            if (string.IsNullOrWhiteSpace(txtMa.Text) ||
+                string.IsNullOrWhiteSpace(txtHoTen.Text) ||
+                dpNgayVao.SelectedDate == null ||
+                cbLoai.SelectedItem == null)
             {
-                Console.WriteLine("Lua chon khong hop le. Thu lai.");
-                continue;
+                MessageBox.Show("Tất cả các trường đều phải có dữ liệu!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
 
-            switch (choice)
+            DateTime ngayVao = dpNgayVao.SelectedDate.Value;
+            if (ngayVao > DateTime.Today)
             {
-                case 1:
-                    NhanVien nv = new NhanVien();
-                    nv.NhapThongTin();
-                    if (danhSach.Any(x => x.MaNhanVien == nv.MaNhanVien))
-                    {
-                        Console.WriteLine("Ma nhan vien da ton tai. Khong the them.");
-                    }
-                    else
-                    {
-                        danhSach.Add(nv);
-                        Console.WriteLine("Them nhan vien thanh cong.");
-                    }
-                    break;
-
-                case 2:
-                    if (danhSach.Count == 0)
-                    {
-                        Console.WriteLine("Danh sach rong.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Ma\tHo Ten\tDia Chi\tChuc Vu\tHe So Chuc Vu\tHe So Luong\tLuong");
-                        foreach (var item in danhSach)
-                        {
-                            Console.WriteLine($"{item.MaNhanVien}\t{item.HoTen}\t{item.DiaChi}\t{item.ChucVu}\t{item.GetHeSoChucVu()}\t{item.HeSoLuong}\t{item.TinhLuong()}");
-                        }
-                    }
-                    break;
-
-                case 3:
-                    if (danhSach.Count == 0)
-                    {
-                        Console.WriteLine("Danh sach rong.");
-                    }
-                    else
-                    {
-                        var sortedList = danhSach.OrderBy(x => x.HoTen).ThenBy(x => x.TinhLuong()).ToList();
-                        Console.WriteLine("Danh sach sau khi sap xep:");
-                        Console.WriteLine("Ma\tHo Ten\tDia Chi\tChuc Vu\tHe So Chuc Vu\tHe So Luong\tLuong");
-                        foreach (var item in sortedList)
-                        {
-                            Console.WriteLine($"{item.MaNhanVien}\t{item.HoTen}\t{item.DiaChi}\t{item.ChucVu}\t{item.GetHeSoChucVu()}\t{item.HeSoLuong}\t{item.TinhLuong()}");
-                        }
-                    }
-                    break;
-
-                case 4: // Tim kiem
-                    Console.Write("Nhap ma nhan vien can tim: ");
-                    string maTim = Console.ReadLine();
-                    var nvTim = danhSach.FirstOrDefault(x => x.MaNhanVien == maTim);
-                    if (nvTim != null)
-                    {
-                        Console.WriteLine("Ma\tHo Ten\tDia Chi\tChuc Vu\tHe So Chuc Vu\tHe So Luong\tLuong");
-                        Console.WriteLine($"{nvTim.MaNhanVien}\t{nvTim.HoTen}\t{nvTim.DiaChi}\t{nvTim.ChucVu}\t{nvTim.GetHeSoChucVu()}\t{nvTim.HeSoLuong}\t{nvTim.TinhLuong()}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Khong tim thay nhan vien.");
-                    }
-                    break;
-
-                case 5: // Sua
-                    Console.Write("Nhap ma nhan vien can sua: ");
-                    string maSua = Console.ReadLine();
-                    var nvSua = danhSach.FirstOrDefault(x => x.MaNhanVien == maSua);
-                    if (nvSua != null)
-                    {
-                        Console.WriteLine("Nhap thong tin moi:");
-                        nvSua.NhapThongTin();
-                        // Cap nhat ma moi, nhung kiem tra trung
-                        if (danhSach.Any(x => x != nvSua && x.MaNhanVien == nvSua.MaNhanVien))
-                        {
-                            Console.WriteLine("Ma nhan vien moi da ton tai. Khong the cap nhat.");
-                            // Hoan tac ma, nhung de don gian, giu nguyen
-                        }
-                        else
-                        {
-                            Console.WriteLine("Cap nhat thanh cong.");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Khong tim thay nhan vien.");
-                    }
-                    break;
-
-                case 6: // Xoa
-                    Console.Write("Nhap ma nhan vien can xoa: ");
-                    string maXoa = Console.ReadLine();
-                    var nvXoa = danhSach.FirstOrDefault(x => x.MaNhanVien == maXoa);
-                    if (nvXoa != null)
-                    {
-                        danhSach.Remove(nvXoa);
-                        Console.WriteLine("Xoa thanh cong.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Khong tim thay nhan vien.");
-                    }
-                    break;
-
-                case 7:
-                    running = false;
-                    Console.WriteLine("Thoat chuong trinh.");
-                    break;
-
-                default:
-                    Console.WriteLine("Lua chon khong hop le. Thu lai.");
-                    break;
+                MessageBox.Show("Ngày vào viện phải nhỏ hơn hoặc bằng ngày hiện tại!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
+
+            // Thêm vào danh sách
+            var patient = new Patient
+            {
+                Ma = txtMa.Text.Trim(),
+                HoTen = txtHoTen.Text.Trim(),
+                NgayVaoVien = ngayVao,
+                LoaiBenhNhan = ((ComboBoxItem)cbLoai.SelectedItem).Content.ToString()
+            };
+
+            patients.Add(patient);
+            dgPatients.ItemsSource = null;           // Refresh
+            dgPatients.ItemsSource = patients;
+
+            // Clear form
+            txtMa.Clear();
+            txtHoTen.Clear();
+            cbLoai.SelectedIndex = -1;
+            dpNgayVao.SelectedDate = DateTime.Today;
+
+            MessageBox.Show("Nhập dữ liệu thành công!", "Thông báo");
+        }
+
+        private void btnChiTiet_Click(object sender, RoutedEventArgs e)
+        {
+            // Lọc bệnh nhân Nội trú
+            var noiTruList = patients.Where(p => p.LoaiBenhNhan == "Nội trú").ToList();
+
+            if (noiTruList.Count == 0)
+            {
+                MessageBox.Show("Không có bệnh nhân Nội trú nào!", "Thông báo");
+                return;
+            }
+
+            // Mở cửa sổ chi tiết
+            var detailWindow = new DetailWindow(noiTruList);
+            detailWindow.ShowDialog();
         }
     }
 }
+```
+
+### **5. Tạo cửa sổ Chi tiết (DetailWindow.xaml)**
+
+Thêm **Window** mới tên `DetailWindow.xaml`:
+
+```xaml
+<Window x:Class="YourProject.DetailWindow"
+        Title="Danh sách bệnh nhân Nội trú" Height="500" Width="700">
+    <Grid>
+        <DataGrid x:Name="dgNoiTru" Margin="10" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Mã" Binding="{Binding Ma}"/>
+                <DataGridTextColumn Header="Họ tên" Binding="{Binding HoTen}"/>
+                <DataGridTextColumn Header="Ngày vào viện" Binding="{Binding NgayVaoVien, StringFormat=dd/MM/yyyy}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
+```
+
+**DetailWindow.xaml.cs**:
+
+```csharp
+public partial class DetailWindow : Window
+{
+    public DetailWindow(List<Patient> noiTruList)
+    {
+        InitializeComponent();
+        dgNoiTru.ItemsSource = noiTruList;
+    }
+}
+```
+
+### **6. Lưu ý quan trọng**
+- **Ngày vào viện**: Dùng `StringFormat=dd/MM/yyyy` trong Binding.
+- **Nút vàng ellipse**: Dùng `Ellipse` trong `ControlTemplate`.
+- **Validation**: Kiểm tra rỗng + ngày không được lớn hơn hôm nay.
+- **DataGrid**: Bind trực tiếp `List<Patient>`.
+- Build và test đầy đủ chức năng trước khi nộp.
+
+Bạn có thể copy-paste code trên và chỉnh sửa tên project/class cho phù hợp. Nếu gặp lỗi cụ thể (ví dụ: binding, style...), paste lỗi vào đây mình hỗ trợ tiếp! 
+
+**Chúc bạn làm bài tốt!** 🚀
